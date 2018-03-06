@@ -1,0 +1,101 @@
+// Copyright (c) 2018 soren yang
+//
+// Licensed under the MIT License
+// you may not use this file except in complicance with the License.
+// You may obtain a copy of the License at
+//
+//     https://opensource.org/licenses/MIT
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package atexit
+
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+)
+
+// Handler is the function type which will be called at exit
+type Handler func()
+
+var (
+	handlers      = []Handler{}
+	registerMutex sync.Mutex
+	exitMutex     sync.Mutex
+)
+
+func runHandler(handler Handler) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Fprintf(os.Stderr, "atexit: error on hander, %v", err)
+		}
+	}()
+
+	handler()
+}
+
+func runHandlers(h []Handler) {
+	for _, handler := range h {
+		runHandler(handler)
+	}
+}
+
+// Exit run all handler and terminates the program by os.Exit
+func Exit(code int) {
+	exitMutex.Lock()
+	defer exitMutex.Unlock()
+
+	runHandlers(handlers)
+	os.Exit(code)
+}
+
+// RegisterHandler add handler which will be called at exit
+func RegisterHandler(handler Handler) {
+	registerMutex.Lock()
+	defer registerMutex.Unlock()
+
+	handlers = append(handlers, handler)
+}
+
+// HandleInterrupts will calls the handler functions on receiving a SIGINT or SIGTERM
+func HandleInterrupts() {
+	notifier := make(chan os.Signal, 1)
+	signal.Notify(notifier, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-notifier
+
+		tmpHandlers := func() []Handler {
+			registerMutex.Lock()
+			defer registerMutex.Unlock()
+
+			tmpHandlers := make([]Handler, len(handlers))
+			copy(tmpHandlers, handlers)
+			return tmpHandlers
+		}
+
+		exitMutex.Lock()
+		defer exitMutex.Unlock()
+
+		fmt.Printf("atexit: received %v signal, shutting down...", sig)
+
+		runHandler(tmpHandlers)
+
+		signal.Stop(notifier)
+		pid := syscall.Getpid()
+
+		if pid == 1 {
+			os.Exit(0)
+		}
+
+		err := syscall.Kill(pid, sig.(syscall.Signal))
+		fmt.Printf("atexit: kill %v error, %v", pid, err)
+	}()
+}
