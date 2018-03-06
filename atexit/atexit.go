@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package atexit provide a way to run Handler at process exit
 package atexit
 
 import (
