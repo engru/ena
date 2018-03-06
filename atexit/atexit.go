@@ -15,6 +15,7 @@
 package atexit
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -29,6 +30,8 @@ var (
 	handlers      = []Handler{}
 	registerMutex sync.Mutex
 	exitMutex     sync.Mutex
+
+	ctx, cancel = context.WithCancel(context.Background())
 )
 
 func runHandler(handler Handler) {
@@ -52,7 +55,9 @@ func Exit(code int) {
 	exitMutex.Lock()
 	defer exitMutex.Unlock()
 
+	cancel()
 	runHandlers(handlers)
+
 	os.Exit(code)
 }
 
@@ -70,23 +75,28 @@ func HandleInterrupts() {
 	signal.Notify(notifier, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		sig := <-notifier
+		var sig os.Signal
+		select {
+		case <-ctx.Done():
+			return
+		case sig = <-notifier:
+		}
 
 		tmpHandlers := func() []Handler {
 			registerMutex.Lock()
 			defer registerMutex.Unlock()
 
-			tmpHandlers := make([]Handler, len(handlers))
-			copy(tmpHandlers, handlers)
-			return tmpHandlers
-		}
+			tmp := make([]Handler, len(handlers))
+			copy(tmp, handlers)
+			return tmp
+		}()
 
 		exitMutex.Lock()
 		defer exitMutex.Unlock()
 
 		fmt.Printf("atexit: received %v signal, shutting down...", sig)
 
-		runHandler(tmpHandlers)
+		runHandlers(tmpHandlers)
 
 		signal.Stop(notifier)
 		pid := syscall.Getpid()
@@ -96,6 +106,8 @@ func HandleInterrupts() {
 		}
 
 		err := syscall.Kill(pid, sig.(syscall.Signal))
-		fmt.Printf("atexit: kill %v error, %v", pid, err)
+		if err != nil {
+			fmt.Printf("atexit: kill %v error, %v", pid, err)
+		}
 	}()
 }
