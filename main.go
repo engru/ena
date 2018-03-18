@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/lsytj0413/deustgo/atexit"
-	"github.com/lsytj0413/deustgo/conc"
+	"github.com/lsytj0413/ena/atexit"
+	"github.com/lsytj0413/ena/conc"
 )
 
 func main() {
