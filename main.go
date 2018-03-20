@@ -16,7 +16,7 @@ func main() {
 	atexit.HandleInterrupts()
 	// atexit.Exit(0)
 
-	arr := conc.NewConcurrentArray(10)
+	arr, _ := conc.NewConcurrentArray(10)
 	l := 10
 	var wg sync.WaitGroup
 	wg.Add(l)
