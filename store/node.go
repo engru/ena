@@ -15,7 +15,9 @@
 package store
 
 import (
+	"errors"
 	"path"
+	"sort"
 )
 
 // inode is basic element in the store system
@@ -65,8 +67,20 @@ func (n *inode) Write() {
 
 }
 
-func (n *inode) List() {
+func (n *inode) List() ([]*inode, error) {
+	if !n.IsDir() {
+		return nil, errors.New("Not Dir")
+	}
 
+	nodes := make([]*inode, len(n.Children))
+
+	i := 0
+	for _, node := range n.Children {
+		nodes[i] = node
+		i++
+	}
+
+	return nodes, nil
 }
 
 func (n *inode) GetChild(name string) {
@@ -81,6 +95,47 @@ func (n *inode) Remove(dir bool, recursive bool) {
 
 }
 
+func (n *inode) Repr(recursive bool, sorted bool) *Node {
+	if n.IsDir() {
+		node := &Node{
+			Key: n.Path,
+			Dir: true,
+		}
+
+		if !recursive {
+			return node
+		}
+
+		children, _ := n.List()
+		node.Nodes = make(NodeArray, len(children))
+
+		i := 0
+
+		for _, child := range children {
+			if child.IsHidden() {
+				continue
+			}
+
+			node.Nodes[i] = child.Repr(recursive, sorted)
+			i++
+		}
+
+		node.Nodes = node.Nodes[:i]
+		if sorted {
+			sort.Sort(node.Nodes)
+		}
+
+		return node
+	}
+
+	value := n.Value
+	node := &Node{
+		Key:   n.Path,
+		Value: &value,
+	}
+	return node
+}
+
 func (n *inode) Clone() {
 
 }
@@ -91,6 +146,56 @@ type Node struct {
 	Value *string
 	Dir   bool
 	Nodes NodeArray
+}
+
+func (n *Node) Clone() *Node {
+	if n == nil {
+		return nil
+	}
+
+	nn := &Node{
+		Key: n.Key,
+		Dir: n.Dir,
+	}
+
+	if n.Value != nil {
+		nn.Value = &(*n.Value)
+	}
+
+	if n.Nodes != nil {
+		nn.Nodes = nn.Nodes.Clone()
+	}
+
+	return nn
+}
+
+func (n *Node) loadFromInode(in *inode, recursive bool, sorted bool) {
+	if in.IsDir() {
+		n.Dir = true
+
+		children, _ := in.List()
+		n.Nodes = make(NodeArray, len(children))
+
+		i := 0
+
+		for _, child := range children {
+			if child.IsHidden() {
+				continue
+			}
+
+			n.Nodes[i] = child.Repr(recursive, sorted)
+			i++
+		}
+
+		// slice down length
+		n.Nodes = n.Nodes[:i]
+
+		if sorted {
+			sort.Sort(n.Nodes)
+		}
+	} else {
+		n.Value = &in.Value
+	}
 }
 
 // NodeArray is list of Node
@@ -106,4 +211,13 @@ func (na NodeArray) Less(i int, j int) bool {
 
 func (na NodeArray) Swap(i int, j int) {
 	na[i], na[j] = na[j], na[i]
+}
+
+func (na NodeArray) Clone() NodeArray {
+	nodes := make(NodeArray, na.Len())
+	for i, n := range na {
+		nodes[i] = n.Clone()
+	}
+
+	return nodes
 }
