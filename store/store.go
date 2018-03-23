@@ -67,7 +67,7 @@ func (s *defaultFileSystemStore) Get(
 			return
 		}
 
-		fmt.Printf("Get %s failed", nodePath)
+		fmt.Printf("Get %s failed, %v", nodePath, err)
 	}()
 
 	n, err := s.get(nodePath)
@@ -84,7 +84,32 @@ func (s *defaultFileSystemStore) Set(
 	nodePath string,
 	dir bool,
 	value string) (*Result, error) {
-	return nil, errors.New("Not Implement")
+	var err error
+
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	defer func() {
+		if err == nil {
+			fmt.Printf("Set %s success", nodePath)
+			return
+		}
+
+		fmt.Printf("Set %s failed, %v", nodePath, err)
+	}()
+
+	// First, get prevNode Value
+	_, err = s.get(nodePath)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := s.create(nodePath, dir, value)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
 func (s *defaultFileSystemStore) Update(
@@ -98,6 +123,59 @@ func (s *defaultFileSystemStore) Create(
 	dir bool,
 	value string) (*Result, error) {
 	return nil, errors.New("Not Implement")
+}
+
+func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string) (*Result, error) {
+	nodePath = path.Clean(path.Join("/", nodePath))
+
+	dirName, nodeName := path.Split(nodePath)
+
+	d, err := s.walk(dirName, s.checkDir)
+
+	if err != nil {
+		return nil, err
+	}
+
+	r := newResult(Create, nodePath)
+	eNode := r.CurrNode
+
+	n, _ := d.GetChild(nodeName)
+	if n != nil {
+		return nil, errors.New("inode exsits")
+	}
+
+	if dir {
+		valueCopy := value
+		eNode.Value = &valueCopy
+
+		n, _ = newFileInode(s, nodePath, value, d)
+	} else {
+		eNode.Dir = true
+		n, _ = newDirInode(s, nodePath, d)
+	}
+
+	d.Add(n)
+
+	return r, nil
+}
+
+// checkDir will check dirName under parent
+// If is directory, return inode
+// If does not exsits, create a new directory and return inode
+// If is file, return an error
+func (s *defaultFileSystemStore) checkDir(parent *inode, dirName string) (*inode, error) {
+	node, ok := parent.Children[dirName]
+	if ok {
+		if node.IsDir() {
+			return node, nil
+		}
+
+		return nil, errors.New("Not a dir")
+	}
+
+	n, _ := newDirInode(s, path.Join(parent.Path, dirName), parent)
+	parent.Children[dirName] = n
+	return n, nil
 }
 
 func (s *defaultFileSystemStore) Delete(

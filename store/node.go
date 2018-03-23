@@ -83,18 +83,44 @@ func (n *inode) List() ([]*inode, error) {
 	return nodes, nil
 }
 
-func (n *inode) GetChild(name string) {
+// GetChild returns the child inode under the directory inode
+// If current inode is file, returns error
+// If child not exists, returns error
+func (n *inode) GetChild(name string) (*inode, error) {
+	if !n.IsDir() {
+		return nil, errors.New("Not Dir")
+	}
 
+	child, ok := n.Children[name]
+	if ok {
+		return child, nil
+	}
+
+	return nil, errors.New("File not Exists")
 }
 
-func (n *inode) Add(child *inode) {
+// Add function adds a inode to the directory inode
+// If current inode is not directory, returns error
+// If same name already exists under the directory, returns error
+func (n *inode) Add(child *inode) error {
+	if !n.IsDir() {
+		return errors.New("Not Dir")
+	}
 
+	_, name := path.Split(child.Path)
+	if _, ok := n.Children[name]; ok {
+		return errors.New("already exists")
+	}
+
+	n.Children[name] = child
+	return nil
 }
 
 func (n *inode) Remove(dir bool, recursive bool) {
 
 }
 
+// Repr will translate inode to Node expression
 func (n *inode) Repr(recursive bool, sorted bool) *Node {
 	if n.IsDir() {
 		node := &Node{
