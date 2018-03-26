@@ -54,7 +54,13 @@ func newDirInode(store *defaultFileSystemStore, nodePath string, parent *inode) 
 }
 
 func (n *inode) IsHidden() bool {
-	return name(n.Path)[0] == '.'
+	v := name(n.Path)
+	if v == "" {
+		// TODO: maybe panic?
+		return false
+	}
+
+	return v[0] == '.'
 }
 
 func (n *inode) IsDir() bool {

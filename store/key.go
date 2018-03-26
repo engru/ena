@@ -45,7 +45,7 @@ func components(nodePath string) []string {
 
 // name returns node filename component
 func name(nodePath string) string {
-	_, name := path.Split(key(nodePath))
+	_, name := split(nodePath)
 	return name
 }
 
