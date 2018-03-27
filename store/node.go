@@ -71,7 +71,8 @@ func (n *Node) loadFromInode(in *inode, recursive bool, sorted bool) {
 				continue
 			}
 
-			n.Nodes[i] = child.Repr(recursive, sorted)
+			// n.Nodes[i] = child.Repr(recursive, sorted)
+			n.Nodes[i] = inodeToNode(child, recursive, sorted)
 			i++
 		}
 

@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"sort"
 )
 
 // inode is basic element in the store system
@@ -166,46 +165,46 @@ func (n *inode) Remove(dir bool, recursive bool) error {
 }
 
 // Repr will translate inode to Node expression
-func (n *inode) Repr(recursive bool, sorted bool) *Node {
-	if n.IsDir() {
-		node := &Node{
-			Key: n.Path,
-			Dir: true,
-		}
+// func (n *inode) Repr(recursive bool, sorted bool) *Node {
+// 	if n.IsDir() {
+// 		node := &Node{
+// 			Key: n.Path,
+// 			Dir: true,
+// 		}
 
-		if !recursive {
-			return node
-		}
+// 		if !recursive {
+// 			return node
+// 		}
 
-		children, _ := n.List()
-		node.Nodes = make(NodeArray, len(children))
+// 		children, _ := n.List()
+// 		node.Nodes = make(NodeArray, len(children))
 
-		i := 0
+// 		i := 0
 
-		for _, child := range children {
-			if child.IsHidden() {
-				continue
-			}
+// 		for _, child := range children {
+// 			if child.IsHidden() {
+// 				continue
+// 			}
 
-			node.Nodes[i] = child.Repr(recursive, sorted)
-			i++
-		}
+// 			node.Nodes[i] = child.Repr(recursive, sorted)
+// 			i++
+// 		}
 
-		node.Nodes = node.Nodes[:i]
-		if sorted {
-			sort.Sort(node.Nodes)
-		}
+// 		node.Nodes = node.Nodes[:i]
+// 		if sorted {
+// 			sort.Sort(node.Nodes)
+// 		}
 
-		return node
-	}
+// 		return node
+// 	}
 
-	value := n.Value
-	node := &Node{
-		Key:   n.Path,
-		Value: &value,
-	}
-	return node
-}
+// 	value := n.Value
+// 	node := &Node{
+// 		Key:   n.Path,
+// 		Value: &value,
+// 	}
+// 	return node
+// }
 
 // Clone function clone the node recursively and return the new node
 // If the node is a directory, it will clone all the content under this directory

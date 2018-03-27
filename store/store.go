@@ -136,7 +136,8 @@ func (s *defaultFileSystemStore) Update(
 	}
 
 	r := newResult(Update, nodePath)
-	r.PrevNode = n.Repr(false, false)
+	// r.PrevNode = n.Repr(false, false)
+	r.PrevNode = inodeToNode(n, false, false)
 
 	eNode := r.CurrNode
 	eNode.Dir = false
@@ -243,7 +244,8 @@ func (s *defaultFileSystemStore) Delete(
 	}
 
 	r := newResult(Delete, nodePath)
-	r.PrevNode = n.Repr(false, false)
+	// r.PrevNode = n.Repr(false, false)
+	r.PrevNode = inodeToNode(n, false, false)
 
 	eNode := r.CurrNode
 	if n.IsDir() {

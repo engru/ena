@@ -23,14 +23,17 @@ const (
 	root = "/"
 )
 
+// construct a nodePath to a key
 func key(nodePath string) string {
 	return path.Clean(path.Join(root, nodePath))
 }
 
+// check nodePath is root key
 func isRoot(nodePath string) bool {
 	return nodePath == root
 }
 
+// split nodePath to array of components
 func components(nodePath string) []string {
 	return strings.Split(nodePath, root)
 }
