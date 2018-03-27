@@ -14,10 +14,7 @@
 
 package store
 
-import (
-	"fmt"
-	"sort"
-)
+import "fmt"
 
 // Node is the external representation of the inode with additional fields
 type Node struct {
@@ -55,36 +52,6 @@ func (n *Node) Clone() *Node {
 	}
 
 	return nn
-}
-
-func (n *Node) loadFromInode(in *inode, recursive bool, sorted bool) {
-	if in.IsDir() {
-		n.Dir = true
-
-		children, _ := in.List()
-		n.Nodes = make(NodeArray, len(children))
-
-		i := 0
-
-		for _, child := range children {
-			if child.IsHidden() {
-				continue
-			}
-
-			// n.Nodes[i] = child.Repr(recursive, sorted)
-			n.Nodes[i] = inodeToNode(child, recursive, sorted)
-			i++
-		}
-
-		// slice down length
-		n.Nodes = n.Nodes[:i]
-
-		if sorted {
-			sort.Sort(n.Nodes)
-		}
-	} else {
-		n.Value = &in.Value
-	}
 }
 
 // NodeArray is list of Node

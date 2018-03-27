@@ -17,7 +17,6 @@ package store
 import (
 	"errors"
 	"fmt"
-	"path"
 )
 
 // inode is basic element in the store system
@@ -55,8 +54,7 @@ func newDirInode(store *defaultFileSystemStore, nodePath string, parent *inode) 
 }
 
 func (n *inode) IsHidden() bool {
-	_, name := path.Split(n.Path)
-	return name[0] == '.'
+	return name(n.Path)[0] == '.'
 }
 
 func (n *inode) IsDir() bool {
@@ -124,7 +122,7 @@ func (n *inode) Add(child *inode) error {
 		return errors.New("Not Dir")
 	}
 
-	_, name := path.Split(child.Path)
+	name := key(child.Path)
 	if _, ok := n.Children[name]; ok {
 		return errors.New("already exists")
 	}
@@ -136,7 +134,7 @@ func (n *inode) Add(child *inode) error {
 // Remove function remove the node
 func (n *inode) Remove(dir bool, recursive bool) error {
 	if !n.IsDir() {
-		_, name := path.Split(n.Path)
+		name := key(n.Path)
 		if n.Parent != nil && n.Parent.Children[name] == n {
 			delete(n.Parent.Children, name)
 		}
@@ -157,56 +155,13 @@ func (n *inode) Remove(dir bool, recursive bool) error {
 	}
 
 	// Delete self
-	_, name := path.Split(n.Path)
+	name := key(n.Path)
 	if n.Parent != nil && n.Parent.Children[name] == n {
 		delete(n.Parent.Children, name)
 	}
 	return nil
 }
 
-// Repr will translate inode to Node expression
-// func (n *inode) Repr(recursive bool, sorted bool) *Node {
-// 	if n.IsDir() {
-// 		node := &Node{
-// 			Key: n.Path,
-// 			Dir: true,
-// 		}
-
-// 		if !recursive {
-// 			return node
-// 		}
-
-// 		children, _ := n.List()
-// 		node.Nodes = make(NodeArray, len(children))
-
-// 		i := 0
-
-// 		for _, child := range children {
-// 			if child.IsHidden() {
-// 				continue
-// 			}
-
-// 			node.Nodes[i] = child.Repr(recursive, sorted)
-// 			i++
-// 		}
-
-// 		node.Nodes = node.Nodes[:i]
-// 		if sorted {
-// 			sort.Sort(node.Nodes)
-// 		}
-
-// 		return node
-// 	}
-
-// 	value := n.Value
-// 	node := &Node{
-// 		Key:   n.Path,
-// 		Value: &value,
-// 	}
-// 	return node
-// }
-
-// Clone function clone the node recursively and return the new node
 // If the node is a directory, it will clone all the content under this directory
 // If the node is a file, it will clone the file
 func (n *inode) Clone() *inode {

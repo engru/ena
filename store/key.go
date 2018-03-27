@@ -28,6 +28,11 @@ func key(nodePath string) string {
 	return path.Clean(path.Join(root, nodePath))
 }
 
+// construct a nodepath from dirname and filename
+func keyFromDirAndFile(dir string, file string) string {
+	return path.Join(dir, file)
+}
+
 // check nodePath is root key
 func isRoot(nodePath string) bool {
 	return nodePath == root
@@ -36,4 +41,15 @@ func isRoot(nodePath string) bool {
 // split nodePath to array of components
 func components(nodePath string) []string {
 	return strings.Split(nodePath, root)
+}
+
+// name returns node filename component
+func name(nodePath string) string {
+	_, name := path.Split(nodePath)
+	return name
+}
+
+// split nodePath to dirname and filename
+func split(nodePath string) (string, string) {
+	return path.Split(nodePath)
 }

@@ -17,7 +17,6 @@ package store
 import (
 	"errors"
 	"fmt"
-	"path"
 	"sync"
 )
 
@@ -78,7 +77,8 @@ func (s *defaultFileSystemStore) Get(
 	}
 
 	r := newResult(Get, nodePath)
-	r.CurrNode.loadFromInode(n, recursive, sorted)
+	r.CurrNode = inodeToNode(n, recursive, sorted)
+	// r.CurrNode.loadFromInode(n, recursive, sorted)
 	return r, nil
 }
 
@@ -171,9 +171,9 @@ func (s *defaultFileSystemStore) Create(
 }
 
 func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string) (*Result, error) {
-	nodePath = path.Clean(path.Join("/", nodePath))
+	nodePath = key(nodePath)
 
-	dirName, nodeName := path.Split(nodePath)
+	dirName, nodeName := split(nodePath)
 
 	d, err := s.walk(dirName, s.checkDir)
 
@@ -218,7 +218,7 @@ func (s *defaultFileSystemStore) checkDir(parent *inode, dirName string) (*inode
 		return nil, errors.New("Not a dir")
 	}
 
-	n := newDirInode(s, path.Join(parent.Path, dirName), parent)
+	n := newDirInode(s, keyFromDirAndFile(parent.Path, dirName), parent)
 	parent.Children[dirName] = n
 	return n, nil
 }
@@ -232,7 +232,7 @@ func (s *defaultFileSystemStore) Delete(
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	nodePath = path.Clean(path.Join("/", nodePath))
+	nodePath = key(nodePath)
 
 	if recursive {
 		dir = true
