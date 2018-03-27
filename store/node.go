@@ -59,12 +59,25 @@ func (n *inode) IsDir() bool {
 	return n.Children != nil
 }
 
-func (n *inode) Read() {
+// Read function gets the value of the node
+// If node is a directory, fail
+func (n *inode) Read() (string, error) {
+	if n.IsDir() {
+		return "", errors.New("Not File")
+	}
 
+	return n.Value, nil
 }
 
-func (n *inode) Write() {
+// Write function set the value of the node to the given value
+// If node is a directory, fail
+func (n *inode) Write(value string) error {
+	if n.IsDir() {
+		return errors.New("Not file")
+	}
 
+	n.Value = value
+	return nil
 }
 
 func (n *inode) List() ([]*inode, error) {

@@ -112,10 +112,38 @@ func (s *defaultFileSystemStore) Set(
 	return e, nil
 }
 
+// Update updates the value of the node
+// If the node is a directory, Update will fail
 func (s *defaultFileSystemStore) Update(
 	nodePath string,
 	newValue string) (*Result, error) {
-	return nil, errors.New("Not Implement")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	nodePath = path.Clean(path.Join("/", nodePath))
+
+	n, err := s.get(nodePath)
+	if err != nil {
+		return nil, err
+	}
+
+	if n.IsDir() {
+		return nil, errors.New("Not file")
+	}
+
+	r := newResult(Update, nodePath)
+	r.PrevNode = n.Repr(false, false)
+
+	eNode := r.CurrNode
+	eNode.Dir = false
+	eNode.Value = &newValue
+
+	err = n.Write(newValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 // Create creates the node at nodePath.
