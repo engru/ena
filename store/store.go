@@ -86,8 +86,8 @@ func (s *defaultFileSystemStore) Set(
 	value string) (*Result, error) {
 	var err error
 
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
 	defer func() {
 		if err == nil {
@@ -118,11 +118,23 @@ func (s *defaultFileSystemStore) Update(
 	return nil, errors.New("Not Implement")
 }
 
+// Create creates the node at nodePath.
+// If the node has already exists, create will fail
+// If any node on the path is file, create will fail
 func (s *defaultFileSystemStore) Create(
 	nodePath string,
 	dir bool,
 	value string) (*Result, error) {
-	return nil, errors.New("Not Implement")
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	e, err := s.create(nodePath, dir, value)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
 func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string) (*Result, error) {
@@ -178,11 +190,39 @@ func (s *defaultFileSystemStore) checkDir(parent *inode, dirName string) (*inode
 	return n, nil
 }
 
+// Delete deletes the node at the given path
+// If the node is a directory, recursive must be true to delete it
 func (s *defaultFileSystemStore) Delete(
 	nodePath string,
 	dir bool,
 	recursive bool) (*Result, error) {
-	return nil, errors.New("Not Implement")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	nodePath = path.Clean(path.Join("/", nodePath))
+
+	if recursive {
+		dir = true
+	}
+
+	n, err := s.get(nodePath)
+	if err != nil {
+		return nil, err
+	}
+
+	r := newResult(Delete, nodePath)
+	r.PrevNode = n.Repr(false, false)
+
+	eNode := r.CurrNode
+	if n.IsDir() {
+		eNode.Dir = true
+	}
+
+	err = n.Remove(dir, recursive)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }
 
 func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {

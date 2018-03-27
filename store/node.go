@@ -116,8 +116,35 @@ func (n *inode) Add(child *inode) error {
 	return nil
 }
 
-func (n *inode) Remove(dir bool, recursive bool) {
+// Remove function remove the node
+func (n *inode) Remove(dir bool, recursive bool) error {
+	if !n.IsDir() {
+		_, name := path.Split(n.Path)
+		if n.Parent != nil && n.Parent.Children[name] == n {
+			delete(n.Parent.Children, name)
+		}
 
+		return nil
+	}
+
+	if !dir {
+		return errors.New("Not File")
+	}
+
+	if len(n.Children) != 0 && !recursive {
+		return errors.New("Dir Not Empty")
+	}
+
+	for _, child := range n.Children {
+		child.Remove(true, true)
+	}
+
+	// Delete self
+	_, name := path.Split(n.Path)
+	if n.Parent != nil && n.Parent.Children[name] == n {
+		delete(n.Parent.Children, name)
+	}
+	return nil
 }
 
 // Repr will translate inode to Node expression
