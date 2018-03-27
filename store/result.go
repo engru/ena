@@ -43,6 +43,7 @@ func newResult(action string, key string) *Result {
 	}
 }
 
+// Clone return a copy of Result
 func (r *Result) Clone() *Result {
 	return &Result{
 		Action:   r.Action,

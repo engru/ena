@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"strings"
 	"sync"
 )
 
@@ -49,7 +48,7 @@ func NewFileSystemStore() FileSystemStore {
 
 func newDefaultFileSystemStore() *defaultFileSystemStore {
 	s := new(defaultFileSystemStore)
-	s.Root, _ = newDirInode(s, "/", nil)
+	s.Root = newDirInode(s, "/", nil)
 	return s
 }
 
@@ -125,7 +124,7 @@ func (s *defaultFileSystemStore) Update(
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	nodePath = path.Clean(path.Join("/", nodePath))
+	nodePath = key(nodePath)
 
 	n, err := s.get(nodePath)
 	if err != nil {
@@ -193,10 +192,10 @@ func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string)
 		valueCopy := value
 		eNode.Value = &valueCopy
 
-		n, _ = newFileInode(s, nodePath, value, d)
+		n = newFileInode(s, nodePath, value, d)
 	} else {
 		eNode.Dir = true
-		n, _ = newDirInode(s, nodePath, d)
+		n = newDirInode(s, nodePath, d)
 	}
 
 	d.Add(n)
@@ -218,7 +217,7 @@ func (s *defaultFileSystemStore) checkDir(parent *inode, dirName string) (*inode
 		return nil, errors.New("Not a dir")
 	}
 
-	n, _ := newDirInode(s, path.Join(parent.Path, dirName), parent)
+	n := newDirInode(s, path.Join(parent.Path, dirName), parent)
 	parent.Children[dirName] = n
 	return n, nil
 }
@@ -259,7 +258,7 @@ func (s *defaultFileSystemStore) Delete(
 }
 
 func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
-	nodePath = path.Clean(path.Join("/", nodePath))
+	nodePath = key(nodePath)
 
 	walkFunc := func(parent *inode, name string) (*inode, error) {
 		if !parent.IsDir() {
@@ -283,7 +282,7 @@ func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
 }
 
 func (s *defaultFileSystemStore) walk(nodePath string, walkFunc func(prev *inode, component string) (*inode, error)) (*inode, error) {
-	components := strings.Split(nodePath, "/")
+	components := components(nodePath)
 
 	curr := s.Root
 	var err error
