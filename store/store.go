@@ -44,9 +44,12 @@ type defaultFileSystemStore struct {
 
 // NewFileSystemStore creates a FileSystemStore with root directories
 func NewFileSystemStore() FileSystemStore {
+	return newDefaultFileSystemStore()
+}
+
+func newDefaultFileSystemStore() *defaultFileSystemStore {
 	s := new(defaultFileSystemStore)
 	s.Root, _ = newDirInode(s, "/", nil)
-
 	return s
 }
 
@@ -91,17 +94,19 @@ func (s *defaultFileSystemStore) Set(
 
 	defer func() {
 		if err == nil {
-			fmt.Printf("Set %s success", nodePath)
+			fmt.Printf("Set %s success\n", nodePath)
 			return
 		}
 
-		fmt.Printf("Set %s failed, %v", nodePath, err)
+		fmt.Printf("Set %s failed, %v\n", nodePath, err)
 	}()
 
 	// First, get prevNode Value
 	_, err = s.get(nodePath)
 	if err != nil {
-		return nil, err
+		if err.Error() != "Key Not Found" {
+			return nil, err
+		}
 	}
 
 	e, err := s.create(nodePath, dir, value)
@@ -184,7 +189,7 @@ func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string)
 		return nil, errors.New("inode exsits")
 	}
 
-	if dir {
+	if !dir {
 		valueCopy := value
 		eNode.Value = &valueCopy
 

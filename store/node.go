@@ -16,6 +16,7 @@ package store
 
 import (
 	"errors"
+	"fmt"
 	"path"
 	"sort"
 )
@@ -30,6 +31,10 @@ type inode struct {
 
 	// A reference to the store this inode is attached to
 	store *defaultFileSystemStore
+}
+
+func (n inode) String() string {
+	return fmt.Sprintf("inode(Path=%s, Value=%s)", n.Path, n.Value)
 }
 
 func newFileInode(store *defaultFileSystemStore, nodePath string, value string, parent *inode) (*inode, error) {
@@ -212,6 +217,15 @@ type Node struct {
 	Value *string
 	Dir   bool
 	Nodes NodeArray
+}
+
+func (n Node) String() string {
+	var value string
+	if n.Value != nil {
+		value = *n.Value
+	}
+
+	return fmt.Sprintf("Node(Key=%s, Value=%s, Dir=%v)", n.Key, value, n.Dir)
 }
 
 func (n *Node) Clone() *Node {
