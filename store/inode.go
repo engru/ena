@@ -144,7 +144,7 @@ func (n *inode) Add(child *inode) error {
 // If current inode is directory and has child and recursive is false, return EcodeDirNotEmpty
 func (n *inode) Remove(dir bool, recursive bool) error {
 	if !n.IsDir() {
-		name := key(n.Path)
+		name := name(key(n.Path))
 		if n.Parent != nil && n.Parent.Children[name] == n {
 			delete(n.Parent.Children, name)
 		}
@@ -153,11 +153,11 @@ func (n *inode) Remove(dir bool, recursive bool) error {
 	}
 
 	if !dir {
-		return NewError(EcodeNotFile, fmt.Sprintf("Remove %s", n.Path))
+		return NewError(EcodeNotFile, fmt.Sprintf("Remove %s, dir must be true", n.Path))
 	}
 
 	if len(n.Children) != 0 && !recursive {
-		return NewError(EcodeDirNotEmpty, fmt.Sprintf("Remove %s", n.Path))
+		return NewError(EcodeDirNotEmpty, fmt.Sprintf("Remove %s, recursive must be true", n.Path))
 	}
 
 	for _, child := range n.Children {
@@ -165,7 +165,7 @@ func (n *inode) Remove(dir bool, recursive bool) error {
 	}
 
 	// Delete self
-	name := key(n.Path)
+	name := name(key(n.Path))
 	if n.Parent != nil && n.Parent.Children[name] == n {
 		delete(n.Parent.Children, name)
 	}

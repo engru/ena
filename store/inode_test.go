@@ -223,6 +223,107 @@ func (s *inodeTestSuite) TestListNotDirError() {
 	s.Equal(EcodeNotDir, e.ErrorCode)
 }
 
+func (s *inodeTestSuite) TestRemoveFileOk() {
+	dnode := newDirInode(nil, "/test", nil)
+	fnode := newFileInode(nil, "/test/tt", "", dnode)
+
+	err := dnode.Add(fnode)
+	s.NoError(err)
+
+	err = fnode.Remove(false, false)
+	s.NoError(err)
+
+	s.Equal(0, len(dnode.Children))
+}
+
+func (s *inodeTestSuite) TestRemoveDirOk() {
+	dnode := newDirInode(nil, "/test", nil)
+	dnode2 := newDirInode(nil, "/test/tt", dnode)
+
+	err := dnode.Add(dnode2)
+	s.NoError(err)
+
+	err = dnode2.Remove(true, false)
+	s.NoError(err)
+
+	s.Equal(0, len(dnode.Children))
+}
+
+func (s *inodeTestSuite) TestRemoveDirRecursiveOk() {
+	dnode := newDirInode(nil, "/test", nil)
+	dnode2 := newDirInode(nil, "/test/tt", dnode)
+
+	err := dnode.Add(dnode2)
+	s.NoError(err)
+
+	fnode := newFileInode(nil, "/test/tt/tt", "", dnode2)
+
+	err = dnode2.Add(fnode)
+	s.NoError(err)
+
+	err = dnode2.Remove(true, true)
+	s.NoError(err)
+
+	s.Equal(0, len(dnode.Children))
+	s.Equal(0, len(dnode2.Children))
+}
+
+func (s *inodeTestSuite) TestRemoveNotFileError() {
+	dnode := newDirInode(nil, "/test", nil)
+	dnode2 := newDirInode(nil, "/test/tt", dnode)
+
+	err := dnode.Add(dnode2)
+	s.NoError(err)
+
+	err = dnode2.Remove(false, false)
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotFile, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestRemoveDirNotEmptyError() {
+	dnode := newDirInode(nil, "/test", nil)
+	dnode2 := newDirInode(nil, "/test/tt", dnode)
+
+	err := dnode.Add(dnode2)
+	s.NoError(err)
+
+	fnode := newFileInode(nil, "/test/tt/tt", "", dnode2)
+
+	err = dnode2.Add(fnode)
+	s.NoError(err)
+
+	err = dnode2.Remove(true, false)
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeDirNotEmpty, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestCloneFileOk() {
+	fnode := newFileInode(nil, "/test/tt/tt", "", nil)
+	n := fnode.Clone()
+
+	s.Equal(*fnode, *n)
+}
+
+func (s *inodeTestSuite) TestCloneDirOk() {
+	dnode := newDirInode(nil, "/test", nil)
+	dnode2 := newDirInode(nil, "/test/tt", dnode)
+
+	err := dnode.Add(dnode2)
+	s.NoError(err)
+
+	fnode := newFileInode(nil, "/test/tt/tt", "", dnode2)
+
+	err = dnode2.Add(fnode)
+	s.NoError(err)
+
+	n := dnode.Clone()
+	s.Equal(*dnode, *n)
+}
+
 func TestInodeTestSuite(t *testing.T) {
 	s := &inodeTestSuite{}
 	suite.Run(t, s)
