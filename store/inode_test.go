@@ -102,6 +102,127 @@ func (s *inodeTestSuite) TestWriteDirError() {
 	s.Equal(EcodeNotFile, e.ErrorCode)
 }
 
+func (s *inodeTestSuite) TestAddOk() {
+	dnode := newDirInode(nil, "/test", nil)
+	fnode := newFileInode(nil, "/test/tt", "", dnode)
+
+	err := dnode.Add(fnode)
+	s.NoError(err)
+
+	s.Equal(1, len(dnode.Children))
+	child, err := dnode.GetChild("tt")
+	s.NoError(err)
+	s.Equal(fnode, child)
+
+	fnode = newFileInode(nil, "/test/tt1", "", dnode)
+	err = dnode.Add(fnode)
+	s.NoError(err)
+
+	s.Equal(2, len(dnode.Children))
+	child, err = dnode.GetChild("tt1")
+	s.NoError(err)
+	s.Equal(fnode, child)
+}
+
+func (s *inodeTestSuite) TestAddNotDirError() {
+	node := newFileInode(nil, "/test", "", nil)
+	err := node.Add(node)
+
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotDir, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestAddExistsError() {
+	dnode := newDirInode(nil, "/test", nil)
+	fnode := newFileInode(nil, "/test/tt", "", dnode)
+
+	err := dnode.Add(fnode)
+	s.NoError(err)
+
+	err = dnode.Add(fnode)
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeExists, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestGetChildOk() {
+	dnode := newDirInode(nil, "/test", nil)
+	fnode := newFileInode(nil, "/test/tt", "", dnode)
+
+	err := dnode.Add(fnode)
+	s.NoError(err)
+
+	child, err := dnode.GetChild("tt")
+	s.NoError(err)
+	s.Equal(fnode, child)
+
+	fnode = newFileInode(nil, "/test/tt1", "", dnode)
+	err = dnode.Add(fnode)
+	s.NoError(err)
+
+	child, err = dnode.GetChild("tt1")
+	s.NoError(err)
+	s.Equal(fnode, child)
+}
+
+func (s *inodeTestSuite) TestGetChildNotDirError() {
+	node := newFileInode(nil, "/test", "", nil)
+	child, err := node.GetChild("test")
+
+	s.Error(err)
+	s.Nil(child)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotDir, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestGetChildNotExistsError() {
+	dnode := newDirInode(nil, "/test", nil)
+	fnode := newFileInode(nil, "/test/tt", "", dnode)
+
+	err := dnode.Add(fnode)
+	s.NoError(err)
+
+	child, err := dnode.GetChild("tt1")
+	s.Error(err)
+	s.Nil(child)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotExists, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestListOk() {
+	dnode := newDirInode(nil, "/test", nil)
+
+	r, err := dnode.List()
+	s.NoError(err)
+	s.NotNil(r)
+	s.Equal(0, len(r))
+
+	fnode := newFileInode(nil, "/test/tt", "", dnode)
+	err = dnode.Add(fnode)
+	s.NoError(err)
+
+	r, err = dnode.List()
+	s.NoError(err)
+	s.NotNil(r)
+	s.Equal(1, len(r))
+	s.Equal(fnode, r[0])
+}
+
+func (s *inodeTestSuite) TestListNotDirError() {
+	fnode := newFileInode(nil, "/test/tt", "", nil)
+	r, err := fnode.List()
+	s.Nil(r)
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotDir, e.ErrorCode)
+}
+
 func TestInodeTestSuite(t *testing.T) {
 	s := &inodeTestSuite{}
 	suite.Run(t, s)

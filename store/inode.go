@@ -130,7 +130,7 @@ func (n *inode) Add(child *inode) error {
 		return NewError(EcodeNotDir, fmt.Sprintf("Add %s: child=%s", n.Path, child.Path))
 	}
 
-	name := key(child.Path)
+	name := name(key(child.Path))
 	if _, ok := n.Children[name]; ok {
 		return NewError(EcodeExists, fmt.Sprintf("Add %s: child=%s", n.Path, child.Path))
 	}
