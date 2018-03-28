@@ -67,37 +67,26 @@ func (s *defaultFileSystemStore) Get(nodePath string, recursive bool, sorted boo
 	return r, nil
 }
 
-func (s *defaultFileSystemStore) Set(
-	nodePath string,
-	dir bool,
-	value string) (*Result, error) {
-	var err error
-
+// Set create of replace the node at nodePath
+func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	defer func() {
-		if err == nil {
-			fmt.Printf("Set %s success\n", nodePath)
-			return
-		}
-
-		fmt.Printf("Set %s failed, %v\n", nodePath, err)
-	}()
-
 	// First, get prevNode Value
-	_, err = s.get(nodePath)
+	_, err := s.get(nodePath)
 	if err != nil {
 		if e := err.(*Error); e.ErrorCode != EcodeNotExists {
 			return nil, err
 		}
 	}
 
-	e, err := s.create(nodePath, dir, value)
+	n, err := s.create(nodePath, dir, value)
 	if err != nil {
 		return nil, err
 	}
 
+	e := newResult(Set)
+	e.CurrNode = inodeToNode(n, false, false)
 	return e, nil
 }
 
@@ -137,68 +126,60 @@ func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Resu
 // Create creates the node at nodePath.
 // If the node has already exists, create will fail
 // If any node on the path is file, create will fail
-func (s *defaultFileSystemStore) Create(
-	nodePath string,
-	dir bool,
-	value string) (*Result, error) {
+func (s *defaultFileSystemStore) Create(nodePath string, dir bool, value string) (*Result, error) {
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	e, err := s.create(nodePath, dir, value)
+	n, err := s.create(nodePath, dir, value)
 	if err != nil {
 		return nil, err
 	}
 
+	e := newResult(Create)
+	e.CurrNode = inodeToNode(n, false, false)
 	return e, nil
 }
 
-func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string) (*Result, error) {
+// create creates the node at nodePath
+// If the node has already exists, fail with EcodeExists
+// If any node on the path is file, fail with EcodeNotDir
+func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string) (*inode, error) {
 	nodePath = key(nodePath)
-
 	dirName, nodeName := split(nodePath)
 
-	d, err := walk(dirName, s.Root, s.checkDir)
-
+	d, err := walk(dirName, s.Root, s.createDir)
 	if err != nil {
 		return nil, err
 	}
 
-	r := newResultFromKey(Create, nodePath)
-	eNode := r.CurrNode
-
 	n, _ := d.GetChild(nodeName)
 	if n != nil {
-		return nil, errors.New("inode exsits")
+		return nil, NewError(EcodeExists, fmt.Sprintf("create %s", nodePath))
 	}
 
 	if !dir {
-		valueCopy := value
-		eNode.Value = &valueCopy
-
 		n = newFileInode(s, nodePath, value, d)
 	} else {
-		eNode.Dir = true
 		n = newDirInode(s, nodePath, d)
 	}
-
 	d.Add(n)
 
-	return r, nil
+	return n, nil
 }
 
-// checkDir will check dirName under parent
+// createDir will auto create dirName under parent
 // If is directory, return inode
 // If does not exsits, create a new directory and return inode
-// If is file, return an error
-func (s *defaultFileSystemStore) checkDir(parent *inode, dirName string) (*inode, error) {
+// If is file and exists, return EcodeNotDir
+func (s *defaultFileSystemStore) createDir(parent *inode, dirName string) (*inode, error) {
 	node, ok := parent.Children[dirName]
 	if ok {
 		if node.IsDir() {
 			return node, nil
 		}
 
-		return nil, errors.New("Not a dir")
+		return nil, NewError(EcodeNotDir, fmt.Sprintf("createDirResursive %s: parent=%s", dirName, parent.Path))
 	}
 
 	n := newDirInode(s, keyFromDirAndFile(parent.Path, dirName), parent)
