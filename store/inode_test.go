@@ -45,6 +45,27 @@ func (s *inodeTestSuite) TestIsHidden() {
 	}
 }
 
+func (s *inodeTestSuite) TestIsDir() {
+	values := map[string]struct {
+		node     *inode
+		isHidden bool
+	}{
+		"1": {node: newFileInode(nil, "/", "", nil), isHidden: false},
+		"2": {node: newFileInode(nil, "/xx", "", nil), isHidden: false},
+		"3": {node: newFileInode(nil, "/.key", "", nil), isHidden: false},
+		"4": {node: newFileInode(nil, "/key/xx", "", nil), isHidden: false},
+		"5": {node: newFileInode(nil, "/key/xx/.ky", "", nil), isHidden: false},
+		"6": {node: newDirInode(nil, "/", nil), isHidden: true},
+		"7": {node: newDirInode(nil, "/.k", nil), isHidden: true},
+		"8": {node: newDirInode(nil, "/.k/v", nil), isHidden: true},
+		"9": {node: newDirInode(nil, "/.k/xx/.ee", nil), isHidden: true},
+	}
+
+	for _, v := range values {
+		s.Equal(v.isHidden, v.node.IsDir())
+	}
+}
+
 func TestInodeTestSuite(t *testing.T) {
 	s := &inodeTestSuite{}
 	suite.Run(t, s)

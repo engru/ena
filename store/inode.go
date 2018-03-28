@@ -71,7 +71,7 @@ func (n *inode) IsDir() bool {
 // If node is a directory, fail
 func (n *inode) Read() (string, error) {
 	if n.IsDir() {
-		return "", errors.New("Not File")
+		return "", NewError(EcodeNotFile, fmt.Sprintf("Read %s", n.Path))
 	}
 
 	return n.Value, nil
@@ -81,7 +81,7 @@ func (n *inode) Read() (string, error) {
 // If node is a directory, fail
 func (n *inode) Write(value string) error {
 	if n.IsDir() {
-		return errors.New("Not file")
+		return NewError(EcodeNotFile, fmt.Sprintf("Write %s", n.Path))
 	}
 
 	n.Value = value
@@ -90,7 +90,7 @@ func (n *inode) Write(value string) error {
 
 func (n *inode) List() ([]*inode, error) {
 	if !n.IsDir() {
-		return nil, errors.New("Not Dir")
+		return nil, NewError(EcodeNotDir, fmt.Sprintf("List %s", n.Path))
 	}
 
 	nodes := make([]*inode, len(n.Children))
