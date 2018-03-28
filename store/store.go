@@ -53,30 +53,16 @@ func newDefaultFileSystemStore() *defaultFileSystemStore {
 
 // Get returns Node
 // If recursive is true, it will return all the content under the node path
-func (s *defaultFileSystemStore) Get(
-	nodePath string,
-	recursive bool,
-	sorted bool) (*Result, error) {
-	var err error
-
+func (s *defaultFileSystemStore) Get(nodePath string, recursive bool, sorted bool) (*Result, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-
-	defer func() {
-		if err == nil {
-			fmt.Printf("Get %s success", nodePath)
-			return
-		}
-
-		fmt.Printf("Get %s failed, %v", nodePath, err)
-	}()
 
 	n, err := s.get(nodePath)
 	if err != nil {
 		return nil, err
 	}
 
-	r := newResult(Get, nodePath)
+	r := newResult(Get)
 	r.CurrNode = inodeToNode(n, recursive, sorted)
 	return r, nil
 }
@@ -102,7 +88,7 @@ func (s *defaultFileSystemStore) Set(
 	// First, get prevNode Value
 	_, err = s.get(nodePath)
 	if err != nil {
-		if err.Error() != "Key Not Found" {
+		if e := err.(*Error); e.ErrorCode != EcodeNotExists {
 			return nil, err
 		}
 	}
@@ -117,9 +103,7 @@ func (s *defaultFileSystemStore) Set(
 
 // Update updates the value of the node
 // If the node is a directory, Update will fail
-func (s *defaultFileSystemStore) Update(
-	nodePath string,
-	newValue string) (*Result, error) {
+func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -134,7 +118,7 @@ func (s *defaultFileSystemStore) Update(
 		return nil, errors.New("Not file")
 	}
 
-	r := newResult(Update, nodePath)
+	r := newResult(Update)
 	// r.PrevNode = n.Repr(false, false)
 	r.PrevNode = inodeToNode(n, false, false)
 
@@ -180,7 +164,7 @@ func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string)
 		return nil, err
 	}
 
-	r := newResult(Create, nodePath)
+	r := newResultFromKey(Create, nodePath)
 	eNode := r.CurrNode
 
 	n, _ := d.GetChild(nodeName)
@@ -242,8 +226,7 @@ func (s *defaultFileSystemStore) Delete(
 		return nil, err
 	}
 
-	r := newResult(Delete, nodePath)
-	// r.PrevNode = n.Repr(false, false)
+	r := newResultFromKey(Delete, nodePath)
 	r.PrevNode = inodeToNode(n, false, false)
 
 	eNode := r.CurrNode
@@ -258,12 +241,13 @@ func (s *defaultFileSystemStore) Delete(
 	return r, nil
 }
 
+// get find the nodePath inode
 func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
 	nodePath = key(nodePath)
 
 	walkFunc := func(parent *inode, name string) (*inode, error) {
 		if !parent.IsDir() {
-			return nil, errors.New("Not Dir")
+			return nil, NewError(EcodeNotDir, fmt.Sprintf("get %s: parent=%s", nodePath, parent.Path))
 		}
 
 		child, ok := parent.Children[name]
@@ -271,7 +255,7 @@ func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
 			return child, nil
 		}
 
-		return nil, errors.New("Key Not Found")
+		return nil, NewError(EcodeNotExists, fmt.Sprintf("get %s", nodePath))
 	}
 
 	f, err := walk(nodePath, s.Root, walkFunc)

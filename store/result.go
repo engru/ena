@@ -34,12 +34,18 @@ type Result struct {
 	PrevNode *Node
 }
 
-func newResult(action string, key string) *Result {
+func newResultFromKey(action string, key string) *Result {
 	return &Result{
 		Action: action,
 		CurrNode: &Node{
 			Key: key,
 		},
+	}
+}
+
+func newResult(action string) *Result {
+	return &Result{
+		Action: action,
 	}
 }
 
