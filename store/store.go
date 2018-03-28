@@ -73,9 +73,21 @@ func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*
 	defer s.lock.Unlock()
 
 	// First, get prevNode Value
-	_, err := s.get(nodePath)
+	prevNode, err := s.get(nodePath)
 	if err != nil {
 		if e := err.(*Error); e.ErrorCode != EcodeNotExists {
+			return nil, err
+		}
+	}
+
+	// remove exists inode before create
+	if prevNode != nil {
+		if prevNode.IsDir() {
+			return nil, NewError(EcodeNotFile, fmt.Sprintf("Set %s: replace when prevNode is dir", nodePath))
+		}
+
+		err = prevNode.Remove(false, false)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -87,6 +99,9 @@ func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*
 
 	e := newResult(Set)
 	e.CurrNode = inodeToNode(n, false, false)
+	if prevNode != nil {
+		e.PrevNode = inodeToNode(prevNode, false, false)
+	}
 	return e, nil
 }
 
@@ -108,7 +123,6 @@ func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Resu
 	}
 
 	r := newResult(Update)
-	// r.PrevNode = n.Repr(false, false)
 	r.PrevNode = inodeToNode(n, false, false)
 
 	eNode := r.CurrNode
