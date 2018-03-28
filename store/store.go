@@ -174,7 +174,7 @@ func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string)
 
 	dirName, nodeName := split(nodePath)
 
-	d, err := s.walk(dirName, s.checkDir)
+	d, err := walk(dirName, s.Root, s.checkDir)
 
 	if err != nil {
 		return nil, err
@@ -274,14 +274,10 @@ func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
 		return nil, errors.New("Key Not Found")
 	}
 
-	f, err := s.walk(nodePath, walkFunc)
+	f, err := walk(nodePath, s.Root, walkFunc)
 	if err != nil {
 		return nil, err
 	}
 
 	return f, nil
-}
-
-func (s *defaultFileSystemStore) walk(nodePath string, walkFunc func(prev *inode, component string) (*inode, error)) (*inode, error) {
-	return walk(nodePath, s.Root, walkFunc)
 }

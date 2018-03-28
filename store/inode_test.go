@@ -66,6 +66,42 @@ func (s *inodeTestSuite) TestIsDir() {
 	}
 }
 
+func (s *inodeTestSuite) TestReadOk() {
+	defaultValue := "test"
+	node := newFileInode(nil, "/test", defaultValue, nil)
+	v, err := node.Read()
+	s.NoError(err)
+	s.Equal(defaultValue, v)
+}
+
+func (s *inodeTestSuite) TestReadDirError() {
+	node := newDirInode(nil, "/test", nil)
+	v, err := node.Read()
+	s.Equal("", v)
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotFile, e.ErrorCode)
+}
+
+func (s *inodeTestSuite) TestWriteOk() {
+	defaultValue := "test"
+	node := newFileInode(nil, "/test", "", nil)
+	err := node.Write(defaultValue)
+	s.NoError(err)
+
+	s.Equal(defaultValue, node.Value)
+}
+
+func (s *inodeTestSuite) TestWriteDirError() {
+	node := newDirInode(nil, "/test", nil)
+	err := node.Write("")
+	s.Error(err)
+
+	e := err.(*Error)
+	s.Equal(EcodeNotFile, e.ErrorCode)
+}
+
 func TestInodeTestSuite(t *testing.T) {
 	s := &inodeTestSuite{}
 	suite.Run(t, s)
