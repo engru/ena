@@ -78,7 +78,6 @@ func (s *defaultFileSystemStore) Get(
 
 	r := newResult(Get, nodePath)
 	r.CurrNode = inodeToNode(n, recursive, sorted)
-	// r.CurrNode.loadFromInode(n, recursive, sorted)
 	return r, nil
 }
 
@@ -284,21 +283,5 @@ func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
 }
 
 func (s *defaultFileSystemStore) walk(nodePath string, walkFunc func(prev *inode, component string) (*inode, error)) (*inode, error) {
-	components := components(nodePath)
-
-	curr := s.Root
-	var err error
-
-	for i := 1; i < len(components); i++ {
-		if len(components[i]) == 0 {
-			return curr, nil
-		}
-
-		curr, err = walkFunc(curr, components[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return curr, nil
+	return walk(nodePath, s.Root, walkFunc)
 }

@@ -30,20 +30,20 @@ const (
 	EcodeNotFile = 10000001
 	// EcodeNotDir errors for operate on file but dir is required
 	EcodeNotDir = 10000002
-	// EcodeFileNotExists errors for operate on file but doesn't exists
-	EcodeFileNotExists = 10000003
-	// EcodeFileExists errors for Add file but already exists
-	EcodeFileExists = 10000004
+	// EcodeNotExists errors for operate on target but doesn't exists
+	EcodeNotExists = 10000003
+	// EcodeExists errors for Add target but already exists
+	EcodeExists = 10000004
 	// EcodeDirNotEmpty errors for Remove directory but directory has child etc
 	EcodeDirNotEmpty = 10000005
 )
 
 var errorsMessage = map[int]string{
-	EcodeUnknown:       "Unknown Error",
-	EcodeNotFile:       "Target is Not File",
-	EcodeNotDir:        "Target is Not Dir",
-	EcodeFileNotExists: "Target file is not exists",
-	EcodeFileExists:    "Target file is exists",
+	EcodeUnknown:   "Unknown Error",
+	EcodeNotFile:   "Target is Not File",
+	EcodeNotDir:    "Target is Not Dir",
+	EcodeNotExists: "Target is not exists",
+	EcodeExists:    "Target is exists",
 }
 
 // NewError construct a Error struct and return it

@@ -24,6 +24,7 @@ type Node struct {
 	Nodes NodeArray
 }
 
+// String implements fmt.Stringer
 func (n Node) String() string {
 	var value string
 	if n.Value != nil {
@@ -33,6 +34,9 @@ func (n Node) String() string {
 	return fmt.Sprintf("Node(Key=%s, Value=%s, Dir=%v)", n.Key, value, n.Dir)
 }
 
+// Clone return node clone object
+// If the node is a directory, it will clone all the content under this directory
+// If the node is a file, it will clone the file
 func (n *Node) Clone() *Node {
 	if n == nil {
 		return nil
@@ -57,18 +61,22 @@ func (n *Node) Clone() *Node {
 // NodeArray is list of Node
 type NodeArray []*Node
 
+// Len implements sort.Interface
 func (na NodeArray) Len() int {
 	return len(na)
 }
 
+// Less implements sort.Interface
 func (na NodeArray) Less(i int, j int) bool {
 	return na[i].Key < na[j].Key
 }
 
+// Swap implements sort.Interface
 func (na NodeArray) Swap(i int, j int) {
 	na[i], na[j] = na[j], na[i]
 }
 
+// Clone object
 func (na NodeArray) Clone() NodeArray {
 	nodes := make(NodeArray, na.Len())
 	for i, n := range na {

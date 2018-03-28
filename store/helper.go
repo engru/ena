@@ -61,3 +61,24 @@ func inodeToNode(n *inode, recursive bool, sorted bool) *Node {
 	}
 	return node
 }
+
+func walk(nodePath string, root *inode, walkFunc func(prev *inode, component string) (*inode, error)) (*inode, error) {
+	components := components(nodePath)
+
+	curr := root
+	var err error
+
+	// start at 1 skip the first empty component
+	for i := 1; i < len(components); i++ {
+		if len(components[i]) == 0 {
+			return curr, nil
+		}
+
+		curr, err = walkFunc(curr, components[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return curr, nil
+}

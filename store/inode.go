@@ -28,6 +28,7 @@ type inode struct {
 	store *defaultFileSystemStore
 }
 
+// String implements fmt.Stringer
 func (n inode) String() string {
 	return fmt.Sprintf("inode(Path=%s, Value=%s)", n.Path, n.Value)
 }
@@ -118,7 +119,7 @@ func (n *inode) GetChild(name string) (*inode, error) {
 		return child, nil
 	}
 
-	return nil, NewError(EcodeFileNotExists, fmt.Sprintf("GetChild %s: child=%s", n.Path, name))
+	return nil, NewError(EcodeNotExists, fmt.Sprintf("GetChild %s: child=%s", n.Path, name))
 }
 
 // Add function adds a inode to the directory inode
@@ -131,7 +132,7 @@ func (n *inode) Add(child *inode) error {
 
 	name := key(child.Path)
 	if _, ok := n.Children[name]; ok {
-		return NewError(EcodeFileExists, fmt.Sprintf("Add %s: child=%s", n.Path, child.Path))
+		return NewError(EcodeExists, fmt.Sprintf("Add %s: child=%s", n.Path, child.Path))
 	}
 
 	n.Children[name] = child
@@ -171,6 +172,7 @@ func (n *inode) Remove(dir bool, recursive bool) error {
 	return nil
 }
 
+// Clone return inode clone object
 // If the node is a directory, it will clone all the content under this directory
 // If the node is a file, it will clone the file
 func (n *inode) Clone() *inode {
