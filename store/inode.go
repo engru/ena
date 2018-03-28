@@ -14,10 +14,7 @@
 
 package store
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 // inode is basic element in the store system
 type inode struct {
@@ -53,6 +50,7 @@ func newDirInode(store *defaultFileSystemStore, nodePath string, parent *inode) 
 	}
 }
 
+// IsHidden check the inode is hidden, which inode name start with dot is a hidden inode
 func (n *inode) IsHidden() bool {
 	v := name(n.Path)
 	if v == "" {
@@ -63,12 +61,13 @@ func (n *inode) IsHidden() bool {
 	return v[0] == '.'
 }
 
+// IsDir check the inode is directory
 func (n *inode) IsDir() bool {
 	return n.Children != nil
 }
 
 // Read function gets the value of the node
-// If node is a directory, fail
+// If node is a directory, EcodeNotFile return
 func (n *inode) Read() (string, error) {
 	if n.IsDir() {
 		return "", NewError(EcodeNotFile, fmt.Sprintf("Read %s", n.Path))
@@ -78,7 +77,7 @@ func (n *inode) Read() (string, error) {
 }
 
 // Write function set the value of the node to the given value
-// If node is a directory, fail
+// If node is a directory, EcodeNotFile return
 func (n *inode) Write(value string) error {
 	if n.IsDir() {
 		return NewError(EcodeNotFile, fmt.Sprintf("Write %s", n.Path))
@@ -88,6 +87,8 @@ func (n *inode) Write(value string) error {
 	return nil
 }
 
+// List return child inode at the current inode
+// If current inode is file, EcodeNotDir error return
 func (n *inode) List() ([]*inode, error) {
 	if !n.IsDir() {
 		return nil, NewError(EcodeNotDir, fmt.Sprintf("List %s", n.Path))
@@ -105,11 +106,11 @@ func (n *inode) List() ([]*inode, error) {
 }
 
 // GetChild returns the child inode under the directory inode
-// If current inode is file, returns error
+// If current inode is file, EcodeNotDir return
 // If child not exists, returns error
 func (n *inode) GetChild(name string) (*inode, error) {
 	if !n.IsDir() {
-		return nil, errors.New("Not Dir")
+		return nil, NewError(EcodeNotDir, fmt.Sprintf("GetChild %s: child=%s", n.Path, name))
 	}
 
 	child, ok := n.Children[name]
@@ -117,20 +118,20 @@ func (n *inode) GetChild(name string) (*inode, error) {
 		return child, nil
 	}
 
-	return nil, errors.New("File not Exists")
+	return nil, NewError(EcodeFileNotExists, fmt.Sprintf("GetChild %s: child=%s", n.Path, name))
 }
 
 // Add function adds a inode to the directory inode
-// If current inode is not directory, returns error
-// If same name already exists under the directory, returns error
+// If current inode is not directory, returns EcodeNotDir
+// If same name already exists under the directory, returns EcodeFileExists
 func (n *inode) Add(child *inode) error {
 	if !n.IsDir() {
-		return errors.New("Not Dir")
+		return NewError(EcodeNotDir, fmt.Sprintf("Add %s: child=%s", n.Path, child.Path))
 	}
 
 	name := key(child.Path)
 	if _, ok := n.Children[name]; ok {
-		return errors.New("already exists")
+		return NewError(EcodeFileExists, fmt.Sprintf("Add %s: child=%s", n.Path, child.Path))
 	}
 
 	n.Children[name] = child
@@ -138,6 +139,8 @@ func (n *inode) Add(child *inode) error {
 }
 
 // Remove function remove the node
+// If current inode is directory and dir is false, return EcodeNotFile
+// If current inode is directory and has child and recursive is false, return EcodeDirNotEmpty
 func (n *inode) Remove(dir bool, recursive bool) error {
 	if !n.IsDir() {
 		name := key(n.Path)
@@ -149,11 +152,11 @@ func (n *inode) Remove(dir bool, recursive bool) error {
 	}
 
 	if !dir {
-		return errors.New("Not File")
+		return NewError(EcodeNotFile, fmt.Sprintf("Remove %s", n.Path))
 	}
 
 	if len(n.Children) != 0 && !recursive {
-		return errors.New("Dir Not Empty")
+		return NewError(EcodeDirNotEmpty, fmt.Sprintf("Remove %s", n.Path))
 	}
 
 	for _, child := range n.Children {
