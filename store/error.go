@@ -14,7 +14,10 @@
 
 package store
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // Error is store package error message define
 type Error struct {
@@ -60,12 +63,24 @@ func (e Error) Error() string {
 	return e.Message + " (" + e.Cause + ")"
 }
 
+var (
+	// For unittest
+	marshal func(interface{}) ([]byte, error)
+)
+
 // JSONString returns the JSON format message
 func (e Error) JSONString() string {
-	b, err := json.Marshal(e)
+	b, err := marshal(e)
 	if err != nil {
-		return ""
+		fmt.Sprintf(
+			`{"errorCode": 1, "message": "%s", "cause": "%s"}`,
+			err.Error(),
+			e.Error())
 	}
 
 	return string(b)
+}
+
+func init() {
+	marshal = json.Marshal
 }
