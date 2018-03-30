@@ -51,7 +51,7 @@ func (s *errorTestSuite) TestJSONString() {
 
 	str2, err := json.Marshal(e)
 	s.NoError(err)
-	s.Equal(str2, str)
+	s.Equal(string(str2), str)
 }
 
 func (s *errorTestSuite) TestJSONStringError() {
@@ -73,7 +73,7 @@ func (s *errorTestSuite) TestJSONStringError() {
 
 	str2, err2 := json.Marshal(err)
 	s.NoError(err2)
-	s.Equal(str2, str)
+	s.Equal(string(str2), str)
 }
 
 func TestErrorTestSuite(t *testing.T) {

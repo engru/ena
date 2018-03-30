@@ -15,7 +15,6 @@
 package store
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -26,15 +25,82 @@ type defaultFileSystemStoreTestSuite struct {
 	store *defaultFileSystemStore
 }
 
+func (s *defaultFileSystemStoreTestSuite) SetupTest() {
+	s.store = newDefaultFileSystemStore()
+}
+
+func (s *defaultFileSystemStoreTestSuite) TearDownTest() {
+	s.store = nil
+}
+
 func (s *defaultFileSystemStoreTestSuite) TestSetOk() {
 	r, err := s.store.Set("xxx", false, "xxx")
 	s.Suite.NoError(err)
 
-	fmt.Printf("%v\n", r)
+	s.Equal(Set, r.Action)
+	s.Equal(false, r.CurrNode.Dir)
+	s.Equal("/xxx", r.CurrNode.Key)
+	s.Equal("xxx", *(r.CurrNode.Value))
+	s.Nil(r.PrevNode)
+}
+
+func (s *defaultFileSystemStoreTestSuite) TestGetOk() {
+	_, err := s.store.Set("xxx", false, "xxx")
+	s.Suite.NoError(err)
+
+	r, err := s.store.Get("xxx", false, false)
+	s.NoError(err)
+	s.Equal(Get, r.Action)
+	s.Equal(false, r.CurrNode.Dir)
+	s.Equal("/xxx", r.CurrNode.Key)
+	s.Equal("xxx", *(r.CurrNode.Value))
+	s.Nil(r.PrevNode)
+}
+
+func (s *defaultFileSystemStoreTestSuite) TestUpdateOk() {
+	_, err := s.store.Set("xxx", false, "xxx")
+	s.Suite.NoError(err)
+
+	r, err := s.store.Update("/xxx", "newxxx")
+	s.NoError(err)
+	s.Equal(Update, r.Action)
+	s.Equal(false, r.CurrNode.Dir)
+	s.Equal("/xxx", r.CurrNode.Key)
+	s.Equal("newxxx", *(r.CurrNode.Value))
+
+	s.Equal(false, r.PrevNode.Dir)
+	s.Equal("/xxx", r.PrevNode.Key)
+	s.Equal("xxx", *(r.PrevNode.Value))
+}
+
+func (s *defaultFileSystemStoreTestSuite) TestCreateOk() {
+	r, err := s.store.Create("xxx", false, "xxx")
+	s.Suite.NoError(err)
+
+	s.Equal(Create, r.Action)
+	s.Equal(false, r.CurrNode.Dir)
+	s.Equal("/xxx", r.CurrNode.Key)
+	s.Equal("xxx", *(r.CurrNode.Value))
+	s.Nil(r.PrevNode)
+}
+
+func (s *defaultFileSystemStoreTestSuite) TestDeleteOk() {
+	_, err := s.store.Create("xxx", false, "xxx")
+	s.NoError(err)
+
+	r, err := s.store.Delete("xxx", false, false)
+	s.NoError(err)
+
+	s.Equal(Delete, r.Action)
+	s.Equal(false, r.PrevNode.Dir)
+	s.Equal("/xxx", r.PrevNode.Key)
+	s.Equal("xxx", *(r.PrevNode.Value))
+	s.Equal(false, r.CurrNode.Dir)
+	s.Equal("/xxx", r.CurrNode.Key)
+	s.Equal("xxx", *(r.CurrNode.Value))
 }
 
 func TestStoreTestSuite(t *testing.T) {
 	s := &defaultFileSystemStoreTestSuite{}
-	s.store = newDefaultFileSystemStore()
 	suite.Run(t, s)
 }

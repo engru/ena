@@ -72,8 +72,8 @@ var (
 func (e Error) JSONString() string {
 	b, err := marshal(e)
 	if err != nil {
-		fmt.Sprintf(
-			`{"errorCode": 1, "message": "%s", "cause": "%s"}`,
+		return fmt.Sprintf(
+			`{"errorCode":1,"message":"%s","cause":"%s"}`,
 			err.Error(),
 			e.Error())
 	}

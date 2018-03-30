@@ -125,15 +125,12 @@ func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Resu
 	r := newResult(Update)
 	r.PrevNode = inodeToNode(n, false, false)
 
-	eNode := r.CurrNode
-	eNode.Dir = false
-	eNode.Value = &newValue
-
 	err = n.Write(newValue)
 	if err != nil {
 		return nil, err
 	}
 
+	r.CurrNode = inodeToNode(n, false, false)
 	return r, nil
 }
 
@@ -203,10 +200,7 @@ func (s *defaultFileSystemStore) createDir(parent *inode, dirName string) (*inod
 
 // Delete deletes the node at the given path
 // If the node is a directory, recursive must be true to delete it
-func (s *defaultFileSystemStore) Delete(
-	nodePath string,
-	dir bool,
-	recursive bool) (*Result, error) {
+func (s *defaultFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -221,13 +215,9 @@ func (s *defaultFileSystemStore) Delete(
 		return nil, err
 	}
 
-	r := newResultFromKey(Delete, nodePath)
+	r := newResult(Delete)
 	r.PrevNode = inodeToNode(n, false, false)
-
-	eNode := r.CurrNode
-	if n.IsDir() {
-		eNode.Dir = true
-	}
+	r.CurrNode = inodeToNode(n, false, false)
 
 	err = n.Remove(dir, recursive)
 	if err != nil {
