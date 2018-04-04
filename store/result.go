@@ -48,3 +48,12 @@ func (r *Result) Clone() *Result {
 		PrevNode: r.PrevNode.Clone(),
 	}
 }
+
+// IsCreated return true when Result.Action is Create or Result.Action is set and PrevNode is nil
+func (r *Result) IsCreated() bool {
+	if r.Action == Create {
+		return true
+	}
+
+	return r.Action == Set && r.PrevNode == nil
+}
