@@ -15,16 +15,8 @@
 package store
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/lsytj0413/ena/cerror"
 )
-
-// Error is store package error message define
-type Error struct {
-	ErrorCode int    `json:"errorCode"`
-	Message   string `json:"message"`
-	Cause     string `json:"cause,omitempty"`
-}
 
 const (
 	// EcodeUnknown is unknown error info
@@ -51,37 +43,10 @@ var errorsMessage = map[int]string{
 }
 
 // NewError construct a Error struct and return it
-func NewError(errorCode int, cause string) *Error {
-	return &Error{
-		ErrorCode: errorCode,
-		Message:   errorsMessage[errorCode],
-		Cause:     cause,
-	}
-}
-
-// Error is for the error interface
-func (e Error) Error() string {
-	return e.Message + " (" + e.Cause + ")"
-}
-
-var (
-	// For unittest
-	marshal func(interface{}) ([]byte, error)
-)
-
-// JSONString returns the JSON format message
-func (e Error) JSONString() string {
-	b, err := marshal(e)
-	if err != nil {
-		return fmt.Sprintf(
-			`{"errorCode":1,"message":"%s","cause":"%s"}`,
-			err.Error(),
-			e.Error())
-	}
-
-	return string(b)
+func NewError(errorCode int, cause string) *cerror.Error {
+	return cerror.NewError(errorCode, cause)
 }
 
 func init() {
-	marshal = json.Marshal
+	cerror.SetErrorsMessage(errorsMessage)
 }

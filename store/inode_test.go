@@ -17,6 +17,7 @@ package store
 import (
 	"testing"
 
+	"github.com/lsytj0413/ena/cerror"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -80,7 +81,7 @@ func (s *inodeTestSuite) TestReadDirError() {
 	s.Equal("", v)
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotFile, e.ErrorCode)
 }
 
@@ -98,7 +99,7 @@ func (s *inodeTestSuite) TestWriteDirError() {
 	err := node.Write("")
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotFile, e.ErrorCode)
 }
 
@@ -130,7 +131,7 @@ func (s *inodeTestSuite) TestAddNotDirError() {
 
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotDir, e.ErrorCode)
 }
 
@@ -144,7 +145,7 @@ func (s *inodeTestSuite) TestAddExistsError() {
 	err = dnode.Add(fnode)
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeExists, e.ErrorCode)
 }
 
@@ -175,7 +176,7 @@ func (s *inodeTestSuite) TestGetChildNotDirError() {
 	s.Error(err)
 	s.Nil(child)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotDir, e.ErrorCode)
 }
 
@@ -190,7 +191,7 @@ func (s *inodeTestSuite) TestGetChildNotExistsError() {
 	s.Error(err)
 	s.Nil(child)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotExists, e.ErrorCode)
 }
 
@@ -219,7 +220,7 @@ func (s *inodeTestSuite) TestListNotDirError() {
 	s.Nil(r)
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotDir, e.ErrorCode)
 }
 
@@ -278,7 +279,7 @@ func (s *inodeTestSuite) TestRemoveNotFileError() {
 	err = dnode2.Remove(false, false)
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeNotFile, e.ErrorCode)
 }
 
@@ -297,7 +298,7 @@ func (s *inodeTestSuite) TestRemoveDirNotEmptyError() {
 	err = dnode2.Remove(true, false)
 	s.Error(err)
 
-	e := err.(*Error)
+	e := err.(*cerror.Error)
 	s.Equal(EcodeDirNotEmpty, e.ErrorCode)
 }
 

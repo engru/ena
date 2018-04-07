@@ -18,6 +18,8 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/lsytj0413/ena/cerror"
 )
 
 // FileSystemStore defines a filesystem like kv store
@@ -75,7 +77,7 @@ func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*
 	// First, get prevNode Value
 	prevNode, err := s.get(nodePath)
 	if err != nil {
-		if e := err.(*Error); e.ErrorCode != EcodeNotExists {
+		if e := err.(*cerror.Error); e.ErrorCode != EcodeNotExists {
 			return nil, err
 		}
 	}
