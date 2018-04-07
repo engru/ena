@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package store
+// Package error defines a common error information defines
+package error
 
 import (
 	"encoding/json"
@@ -26,29 +27,7 @@ type Error struct {
 	Cause     string `json:"cause,omitempty"`
 }
 
-const (
-	// EcodeUnknown is unknown error info
-	EcodeUnknown = 10009999
-	// EcodeNotFile errors for operate on dir but file is required
-	EcodeNotFile = 10000001
-	// EcodeNotDir errors for operate on file but dir is required
-	EcodeNotDir = 10000002
-	// EcodeNotExists errors for operate on target but doesn't exists
-	EcodeNotExists = 10000003
-	// EcodeExists errors for Add target but already exists
-	EcodeExists = 10000004
-	// EcodeDirNotEmpty errors for Remove directory but directory has child etc
-	EcodeDirNotEmpty = 10000005
-)
-
-var errorsMessage = map[int]string{
-	EcodeUnknown:     "Unknown Error",
-	EcodeNotFile:     "Target is Not File",
-	EcodeNotDir:      "Target is Not Dir",
-	EcodeNotExists:   "Target is not exists",
-	EcodeExists:      "Target is exists",
-	EcodeDirNotEmpty: "Dir not empty",
-}
+var errorsMessage = map[int]string{}
 
 // NewError construct a Error struct and return it
 func NewError(errorCode int, cause string) *Error {
@@ -80,6 +59,13 @@ func (e Error) JSONString() string {
 	}
 
 	return string(b)
+}
+
+// SetErrorsMessage init error defined errorCode and Message
+func SetErrorsMessage(message map[int]string) {
+	for k, v := range message {
+		errorsMessage[k] = v
+	}
 }
 
 func init() {
