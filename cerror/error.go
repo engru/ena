@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package error defines a common error information defines
-package error
+// Package cerror defines a common error information defines
+package cerror
 
 import (
 	"encoding/json"
