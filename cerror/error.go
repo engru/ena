@@ -53,9 +53,10 @@ func (e Error) JSONString() string {
 	b, err := marshal(e)
 	if err != nil {
 		return fmt.Sprintf(
-			`{"errorCode":1,"message":"%s","cause":"%s"}`,
-			err.Error(),
-			e.Error())
+			`{"errorCode":%d,"message":"%s","cause":"%s"}`,
+			e.ErrorCode,
+			e.Message,
+			e.Cause)
 	}
 
 	return string(b)

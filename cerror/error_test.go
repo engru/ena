@@ -96,13 +96,7 @@ func (s *errorTestSuite) TestJSONStringError() {
 	e := NewError(EcodeNotDir, "TestJSONString")
 	str := e.JSONString()
 
-	err := &Error{
-		ErrorCode: 1,
-		Message:   "Error Marshal failed",
-		Cause:     e.Error(),
-	}
-
-	str2, err2 := json.Marshal(err)
+	str2, err2 := json.Marshal(e)
 	s.NoError(err2)
 	s.Equal(string(str2), str)
 }
