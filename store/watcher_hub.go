@@ -16,6 +16,8 @@ package store
 
 import (
 	"container/list"
+	"path"
+	"strings"
 	"sync"
 )
 
@@ -25,16 +27,59 @@ type watcherHub struct {
 
 	mutex         sync.Mutex
 	watchers      map[string]*list.List
-	ResultHistory *ResultHistory
+	resultHistory *ResultHistory
 }
 
 func newWatchHub(capacity int) *watcherHub {
 	return &watcherHub{
 		watchers:      make(map[string]*list.List),
-		ResultHistory: newResultHistory(capacity),
+		resultHistory: newResultHistory(capacity),
 	}
 }
 
 func (h *watcherHub) watch(key string, recursive bool, stream bool, index uint64, storeIndex uint64) (Watcher, error) {
-    return nil, nil
+	return nil, nil
+}
+
+func (h *watcherHub) add(r *Result) {
+	h.resultHistory.addResult(r)
+}
+
+func (h *watcherHub) notify(r *Result) {
+	h.add(r)
+}
+
+func (h *watcherHub) notifyWatchers(r *Result, nodePath string, deleted bool) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+
+	watchers, ok := h.watchers[nodePath]
+	if ok {
+		curr := watchers.Front()
+		for curr != nil {
+			next := curr.Next()
+			w, _ := curr.Value.(Watcher)
+
+			originalPath := (r.CurrNode.Key == nodePath)
+			if (originalPath || !isHidden(nodePath, r.CurrNode.Key)) &&
+				w.notify(r, originalPath, deleted) {
+
+			}
+
+			curr = next
+		}
+
+		if watchers.Len() == 0 {
+			delete(h.watchers, nodePath)
+		}
+	}
+}
+
+func isHidden(watchPath string, keyPath string) bool {
+	if len(watchPath) > len(keyPath) {
+		return false
+	}
+
+	afterPath := path.Clean("/" + keyPath[len(watchPath):])
+	return strings.Contains(afterPath, "/.")
 }

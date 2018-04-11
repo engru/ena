@@ -18,6 +18,7 @@ package store
 type Watcher interface {
 	ResultChan() chan *Result
 	Remove()
+	notify(*Result, bool, bool) bool
 }
 
 type defaultWatcher struct {
