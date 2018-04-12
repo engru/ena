@@ -63,11 +63,20 @@ func (s *defaultFileSystemStore) Stater() Stater {
 	return s.stater
 }
 
-// Get returns Node
+// Get returns Node which the nodePath specified
 // If recursive is true, it will return all the content under the node path
 func (s *defaultFileSystemStore) Get(nodePath string, recursive bool, sorted bool) (*Result, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
+
+	var err error
+	defer func() {
+		if err == nil {
+			s.stater.Inc(GetSuccess)
+		} else {
+			s.stater.Inc(GetFail)
+		}
+	}()
 
 	n, err := s.get(nodePath)
 	if err != nil {
@@ -83,6 +92,15 @@ func (s *defaultFileSystemStore) Get(nodePath string, recursive bool, sorted boo
 func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	var err error
+	defer func() {
+		if err == nil {
+			s.stater.Inc(SetSuccess)
+		} else {
+			s.stater.Inc(SetFail)
+		}
+	}()
 
 	// First, get prevNode Value
 	prevNode, err := s.get(nodePath)
@@ -123,6 +141,15 @@ func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Resu
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	var err error
+	defer func() {
+		if err == nil {
+			s.stater.Inc(UpdateSuccess)
+		} else {
+			s.stater.Inc(UpdateFail)
+		}
+	}()
+
 	nodePath = key(nodePath)
 
 	n, err := s.get(nodePath)
@@ -153,6 +180,15 @@ func (s *defaultFileSystemStore) Create(nodePath string, dir bool, value string)
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	var err error
+	defer func() {
+		if err == nil {
+			s.stater.Inc(CreateSuccess)
+		} else {
+			s.stater.Inc(CreateFail)
+		}
+	}()
 
 	n, err := s.create(nodePath, dir, value)
 	if err != nil {
@@ -215,6 +251,15 @@ func (s *defaultFileSystemStore) createDir(parent *inode, dirName string) (*inod
 func (s *defaultFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	var err error
+	defer func() {
+		if err == nil {
+			s.stater.Inc(DeleteSuccess)
+		} else {
+			s.stater.Inc(DeleteFail)
+		}
+	}()
 
 	nodePath = key(nodePath)
 
