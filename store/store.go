@@ -34,12 +34,16 @@ type FileSystemStore interface {
 	Create(nodePath string, dir bool, value string) (*Result, error)
 	// Delete nodePath
 	Delete(nodePath string, dir bool, recursive bool) (*Result, error)
+	// Get the Stater Object
+	Stater() Stater
 }
 
 // defaultFileSystemStore implemented FileSystemStore interface
 type defaultFileSystemStore struct {
 	Root *inode
 	lock sync.RWMutex
+
+	stater Stater
 }
 
 // NewFileSystemStore creates a FileSystemStore with root directories
@@ -50,7 +54,13 @@ func NewFileSystemStore() FileSystemStore {
 func newDefaultFileSystemStore() *defaultFileSystemStore {
 	s := new(defaultFileSystemStore)
 	s.Root = newDirInode(s, "/", nil)
+	s.stater = newStater()
 	return s
+}
+
+// Stater returns the store.Stater object
+func (s *defaultFileSystemStore) Stater() Stater {
+	return s.stater
 }
 
 // Get returns Node

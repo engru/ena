@@ -42,8 +42,15 @@ const (
 	GetFail
 )
 
-// Stats struct holds the stats data
-type Stats struct {
+// Stater is interface define for stats module
+type Stater interface {
+	toJSON() []byte
+	Inc(int)
+	Clone() Stater
+}
+
+// defaultStats struct holds the stats data
+type defaultStats struct {
 	GetSuccess uint64 `json:"getSuccess"`
 	GetFail    uint64 `json:"getFail"`
 
@@ -60,12 +67,12 @@ type Stats struct {
 	DeleteFail    uint64 `json:"deleteFail"`
 }
 
-func newStats() *Stats {
-	return new(Stats)
+func newStater() Stater {
+	return &defaultStats{}
 }
 
-func (s *Stats) clone() *Stats {
-	return &Stats{
+func (s *defaultStats) Clone() Stater {
+	return &defaultStats{
 		GetSuccess:    s.GetSuccess,
 		GetFail:       s.GetFail,
 		SetSuccess:    s.SetSuccess,
@@ -79,13 +86,13 @@ func (s *Stats) clone() *Stats {
 	}
 }
 
-func (s *Stats) toJSON() []byte {
+func (s *defaultStats) toJSON() []byte {
 	b, _ := json.Marshal(s)
 	return b
 }
 
 // Inc will increment the stats value specified by field define
-func (s *Stats) Inc(field int) {
+func (s *defaultStats) Inc(field int) {
 	switch field {
 	case SetSuccess:
 		atomic.AddUint64(&s.SetSuccess, 1)
