@@ -21,6 +21,12 @@ import (
 	"sync"
 )
 
+// WatcherHub is interface define for Watcher module
+type WatcherHub interface {
+	watch(key string, recursive bool) (Watcher, error)
+	notify(*Result)
+}
+
 // watcherHub contains all subscribed watchers
 type watcherHub struct {
 	count uint64 // current number of watchers
@@ -30,14 +36,14 @@ type watcherHub struct {
 	resultHistory *ResultHistory
 }
 
-func newWatchHub(capacity int) *watcherHub {
+func newWatchHub(capacity int) WatcherHub {
 	return &watcherHub{
 		watchers:      make(map[string]*list.List),
 		resultHistory: newResultHistory(capacity),
 	}
 }
 
-func (h *watcherHub) watch(key string, recursive bool, stream bool, index uint64, storeIndex uint64) (Watcher, error) {
+func (h *watcherHub) watch(key string, recursive bool) (Watcher, error) {
 	return nil, nil
 }
 

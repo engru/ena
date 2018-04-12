@@ -36,6 +36,8 @@ type FileSystemStore interface {
 	Delete(nodePath string, dir bool, recursive bool) (*Result, error)
 	// Get the Stater Object
 	Stater() Stater
+	// Watch for key change event
+	Watch(key string, recursive bool) (Watcher, error)
 }
 
 // defaultFileSystemStore implemented FileSystemStore interface
@@ -43,7 +45,8 @@ type defaultFileSystemStore struct {
 	Root *inode
 	lock sync.RWMutex
 
-	stater Stater
+	stater     Stater
+	watcherHub WatcherHub
 }
 
 // NewFileSystemStore creates a FileSystemStore with root directories
@@ -55,6 +58,7 @@ func newDefaultFileSystemStore() *defaultFileSystemStore {
 	s := new(defaultFileSystemStore)
 	s.Root = newDirInode(s, "/", nil)
 	s.stater = newStater()
+	s.watcherHub = newWatchHub(1000)
 	return s
 }
 
@@ -281,6 +285,19 @@ func (s *defaultFileSystemStore) Delete(nodePath string, dir bool, recursive boo
 		return nil, err
 	}
 	return r, nil
+}
+
+func (s *defaultFileSystemStore) Watch(nodePath string, recursive bool) (Watcher, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	nodePath = key(nodePath)
+	w, err := s.watcherHub.watch(nodePath, recursive)
+	if err != nil {
+		return nil, err
+	}
+
+	return w, nil
 }
 
 // get find the nodePath inode
