@@ -14,7 +14,10 @@
 
 package store
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // inode is basic element in the store system
 type inode struct {
@@ -24,6 +27,7 @@ type inode struct {
 	Parent   *inode
 	Children map[string]*inode // for directory
 
+	Expire time.Time
 	// A reference to the store this inode is attached to
 	store *defaultFileSystemStore
 }
