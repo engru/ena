@@ -21,11 +21,11 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type IpTestSuite struct {
+type ipTestSuite struct {
 	suite.Suite
 }
 
-func (p *IpTestSuite) TestIp2Uint32Ok() {
+func (p *ipTestSuite) TestIp2Uint32Ok() {
 	values := map[string]uint32{
 		"0.0.0.0":         0,
 		"0.255.255.255":   16777215,
@@ -51,7 +51,7 @@ func (p *IpTestSuite) TestIp2Uint32Ok() {
 	}
 }
 
-func (p *IpTestSuite) TestIp2Uint32FailInvalid() {
+func (p *ipTestSuite) TestIp2Uint32FailInvalid() {
 	values := []string{"ip",
 		"0.0.0.-1",
 		"-1.0.0.0",
@@ -74,7 +74,7 @@ func (p *IpTestSuite) TestIp2Uint32FailInvalid() {
 	}
 }
 
-func (p *IpTestSuite) TestIp2Uint32FailIpv6() {
+func (p *ipTestSuite) TestIp2Uint32FailIpv6() {
 	values := []string{"CDCD:910A:2222:5498:8475:1111:3900:2020",
 		"1030::C9B4:FF12:48AA:1A2B",
 		"2000:0:0:0:0:0:0:1",
@@ -88,7 +88,7 @@ func (p *IpTestSuite) TestIp2Uint32FailIpv6() {
 	}
 }
 
-func (p *IpTestSuite) TestUint322IpOK() {
+func (p *ipTestSuite) TestUint322IpOK() {
 	values := map[string]uint32{
 		"0.0.0.0":         0,
 		"0.255.255.255":   16777215,
@@ -113,7 +113,7 @@ func (p *IpTestSuite) TestUint322IpOK() {
 	}
 }
 
-func TestUtilTestSuite(t *testing.T) {
-	p := &IpTestSuite{}
+func TestIpTestSuite(t *testing.T) {
+	p := &ipTestSuite{}
 	suite.Run(t, p)
 }

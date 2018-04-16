@@ -15,7 +15,10 @@
 // Package cheap extend container/heap for common usage, such as top, pop, push, update and remove. default sort is Min-Heap
 package cheap
 
-import "container/heap"
+import (
+	"container/heap"
+	"fmt"
+)
 
 // Interface is defined for cheap usage, Any type that implements this could be use
 type Interface interface {
@@ -29,9 +32,9 @@ type Interface interface {
 type Heap interface {
 	Top() interface{}
 	PopX() interface{}
-	PushX(x Interface)
-	Update(x Interface)
-	Remove(x Interface)
+	PushX(x Interface) error
+	Update(x Interface) error
+	Remove(x Interface) error
 }
 
 // default implement for Heap interface
@@ -97,15 +100,24 @@ func (h *defHeap) Top() interface{} {
 }
 
 func (h *defHeap) PopX() interface{} {
+	if h.Len() == 0 {
+		return nil
+	}
+
 	x := heap.Pop(h)
 	return x
 }
 
-func (h *defHeap) PushX(x Interface) {
+func (h *defHeap) PushX(x Interface) error {
+	if _, ok := h.keyMap[x.Id()]; ok {
+		return fmt.Errorf("Heap.PushX: id=%d exists", x.Id())
+	}
+
 	heap.Push(h, x)
+	return nil
 }
 
-func (h *defHeap) Update(n Interface) {
+func (h *defHeap) Update(n Interface) error {
 	index, ok := h.keyMap[n.Id()]
 	if ok {
 		// heap.Remove(h, index)
@@ -113,12 +125,18 @@ func (h *defHeap) Update(n Interface) {
 
 		// use heap.Fix
 		heap.Fix(h, index)
+		return nil
 	}
+
+	return fmt.Errorf("Heap.Update: id=%d not exists", n.Id())
 }
 
-func (h *defHeap) Remove(n Interface) {
+func (h *defHeap) Remove(n Interface) error {
 	index, ok := h.keyMap[n.Id()]
 	if ok {
 		heap.Remove(h, index)
+		return nil
 	}
+
+	return fmt.Errorf("Heap.Remove: id=%d not exists", n.Id())
 }
