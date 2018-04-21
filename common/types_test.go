@@ -14,7 +14,21 @@
 
 package common
 
-const (
-	// MaxUint8 is value of uint8, equals 255
-	MaxUint8 = ^uint8(0)
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
+
+type typeTestSuite struct {
+	suite.Suite
+}
+
+func (p *typeTestSuite) TestMaxUint8Ok() {
+	p.Equal(uint8(255), MaxUint8)
+}
+
+func TestTypeTestSuite(t *testing.T) {
+	p := &typeTestSuite{}
+	suite.Run(t, p)
+}
