@@ -22,8 +22,6 @@ import (
 
 // Interface is defined for cheap usage, Any type that implements this could be use
 type Interface interface {
-	// Priority for sort
-	Priority() uint64
 	// Id for identify the each item, use the pointer is ok
 	Id() uint64
 }
@@ -37,16 +35,23 @@ type Heap interface {
 	Remove(x Interface) error
 }
 
+// Comparator is user-defined functor for sort Interface implements
+type Comparator func(Interface, Interface) bool
+
 // default implement for Heap interface
 type defHeap struct {
 	array []Interface
 	// keep the array.index for each node
 	keyMap map[uint64]int
+	// Less for sort
+	comparator Comparator
 }
 
 // NewHeap cons a Heap object
-func NewHeap() Heap {
-	h := &defHeap{keyMap: make(map[uint64]int)}
+func NewHeap(fn Comparator) Heap {
+	h := &defHeap{keyMap: make(map[uint64]int),
+		comparator: fn,
+	}
 	heap.Init(h)
 	return h
 }
@@ -58,7 +63,7 @@ func (h *defHeap) Len() int {
 
 // Implement sort.Interface.Less
 func (h *defHeap) Less(i int, j int) bool {
-	return h.array[i].Priority() < h.array[j].Priority()
+	return h.comparator(h.array[i], h.array[j])
 }
 
 // Implement sort.Interface.Swap

@@ -32,8 +32,11 @@ type item struct {
 	priority uint64
 }
 
-func (i *item) Priority() uint64 {
-	return i.priority
+func less(v1 Interface, v2 Interface) bool {
+	i1 := v1.(*item)
+	i2 := v2.(*item)
+
+	return i1.priority < i2.priority
 }
 
 func (i *item) Id() uint64 {
@@ -48,7 +51,7 @@ func newItem(id uint64, priority uint64) *item {
 }
 
 func (s *cheapTestSuite) SetupTest() {
-	s.h = NewHeap()
+	s.h = NewHeap(less)
 }
 
 func (s *cheapTestSuite) TestTopOk() {
