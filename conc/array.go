@@ -26,7 +26,7 @@ type defaultArray struct {
 // NewConcurrentArray will create a ConcurrentArray instance
 func NewConcurrentArray(length uint32) (ConcurrentArray, error) {
 	if length > maxArrayLength {
-		return nil, fmt.Errorf("length must be less than: [%v]", maxArrayLength)
+		return nil, fmt.Errorf("NewConcurrentArray: length must be less than [%v]", maxArrayLength+1)
 	}
 
 	array := defaultArray{}
@@ -65,7 +65,7 @@ func (array *defaultArray) Len() uint32 {
 
 func (array *defaultArray) checkIndex(index uint32) error {
 	if index >= array.length {
-		return fmt.Errorf("Index out of range [0, %d)", array.length)
+		return fmt.Errorf("ConcurrentArray.checkIndex: Index out of range [0, %d)", array.length)
 	}
 	return nil
 }
