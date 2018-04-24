@@ -26,5 +26,5 @@ const (
 	DefaultBucketMaxSize uint64 = 1000
 
 	// MaxConcurrency is the max concurrency number
-	MaxConcurrency uint = 65536
+	MaxConcurrency uint32 = 65536
 )
