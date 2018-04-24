@@ -24,6 +24,25 @@ type pairTestSuite struct {
 	suite.Suite
 }
 
+func (s *pairTestSuite) TestNewPairOk() {
+	key := "key"
+	p, err := newPair(key, key)
+
+	s.NoError(err)
+	s.NotNil(p)
+
+	s.Equal(key, p.Key())
+	v := p.Value().(string)
+	s.Equal(key, v)
+}
+
+func (s *pairTestSuite) TestNewPairValueNil() {
+	p, err := newPair("key", nil)
+	s.Nil(p)
+
+	s.Error(err)
+}
+
 func TestPairTestSuite(t *testing.T) {
 	s := &pairTestSuite{}
 	suite.Run(t, s)
