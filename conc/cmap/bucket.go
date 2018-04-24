@@ -20,14 +20,27 @@ import (
 	"sync/atomic"
 )
 
-// Bucket is a concurrency safe List of Pair
+// Bucket is a concurrency safe List of Pair, which has the same hash
 type Bucket interface {
+	// Put a Pair into Bucket, will store as the linked head
 	Put(p Pair, lock sync.Locker) (bool, error)
+
+	// Get the Pair with the given key
 	Get(key string) Pair
+
+	// Get the first Pair stored
 	GetFirstPair() Pair
+
+	// Delete the given key
 	Delete(key string, lock sync.Locker) bool
+
+	// Delete all keys
 	Clear(lock sync.Locker)
+
+	// Size returns the count of key
 	Size() uint64
+
+	// String returns the readable present of the Bucket
 	String() string
 }
 
@@ -58,7 +71,7 @@ func (b *bucket) GetFirstPair() Pair {
 
 func (b *bucket) Put(p Pair, lock sync.Locker) (bool, error) {
 	if p == nil {
-		return false, newInvalidParamError("pair is nil")
+		return false, newInvalidParamError("Bucket.Put: pair is nil")
 	}
 
 	if lock != nil {
@@ -82,6 +95,7 @@ func (b *bucket) Put(p Pair, lock sync.Locker) (bool, error) {
 			break
 		}
 	}
+	// replace the old value
 	if target != nil {
 		target.SetValue(p.Value())
 		return false, nil

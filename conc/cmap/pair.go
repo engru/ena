@@ -46,7 +46,7 @@ type linkedPair interface {
 
 func newPair(key string, v interface{}) (Pair, error) {
 	if v == nil {
-		return nil, newInvalidParamError("value is nil")
+		return nil, newInvalidParamError("newPair: value is nil")
 	}
 
 	p := &pair{
@@ -77,7 +77,7 @@ func (p *pair) Value() interface{} {
 
 func (p *pair) SetValue(v interface{}) error {
 	if v == nil {
-		return newInvalidParamError("value is nil")
+		return newInvalidParamError("Pair.SetValue: value is nil")
 	}
 
 	atomic.StorePointer(&p.value, unsafe.Pointer(&v))

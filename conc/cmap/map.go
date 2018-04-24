@@ -23,10 +23,19 @@ import (
 
 // Map is interface define for Concurrency Safe Map
 type Map interface {
+	// Concurrency returns the Concurrency Number for Map
 	Concurrency() uint32
+
+	// Put a key-value to Map, return true if key exists
 	Put(key string, element interface{}) (bool, error)
+
+	// Get the value associate with the key
 	Get(key string) (interface{}, bool)
+
+	// Delete the key-value, return true if key exists
 	Delete(key string) bool
+
+	// Len returns the count of key
 	Len() uint64
 }
 
@@ -34,21 +43,25 @@ type defMap struct {
 	concurrency uint32
 	total       uint64
 
+	// divide hash to segments, and store data in it
 	segments []Segment
 }
 
 // NewMap will construct a Map instance
-func NewMap(concurrency uint32, pairRedistributor PairRedistributor) (Map, error) {
-	if concurrency <= 0 {
-		return nil, newInvalidParamError(fmt.Sprintf("concurrency should in range of [1, %d]", MaxConcurrency))
-	}
-	if concurrency > MaxConcurrency {
+func NewMap(concurrency uint32) (Map, error) {
+	return NewMapWithRedistributor(concurrency, nil)
+}
+
+// NewMapWithRedistributor will construct a Map instance with given PairRedistributor
+func NewMapWithRedistributor(concurrency uint32, pairRedistributor PairRedistributor) (Map, error) {
+	if concurrency <= 0 || concurrency > MaxConcurrency {
 		return nil, newInvalidParamError(fmt.Sprintf("concurrency should in range of [1, %d]", MaxConcurrency))
 	}
 
-	m := &defMap{}
-	m.concurrency = concurrency
-	m.segments = make([]Segment, concurrency)
+	m := &defMap{
+		concurrency: concurrency,
+		segments:    make([]Segment, concurrency),
+	}
 	for i := 0; i < int(concurrency); i++ {
 		m.segments[i] = newSegment(DefaultBucketNumber, pairRedistributor)
 	}
@@ -66,7 +79,8 @@ func (m *defMap) Put(key string, v interface{}) (bool, error) {
 		return false, err
 	}
 
-	s := m.findSegment(p.Hash())
+	// Put to the segments
+	s := m.locateSegment(p.Hash())
 	ok, err := s.Put(p)
 	if ok {
 		atomic.AddUint64(&m.total, 1)
@@ -76,7 +90,7 @@ func (m *defMap) Put(key string, v interface{}) (bool, error) {
 
 func (m *defMap) Get(key string) (interface{}, bool) {
 	keyHash := hash(key)
-	s := m.findSegment(keyHash)
+	s := m.locateSegment(keyHash)
 	pair := s.GetWithHash(key, keyHash)
 	if pair == nil {
 		return nil, false
@@ -86,7 +100,7 @@ func (m *defMap) Get(key string) (interface{}, bool) {
 }
 
 func (m *defMap) Delete(key string) bool {
-	s := m.findSegment(hash(key))
+	s := m.locateSegment(hash(key))
 	if s.Delete(key) {
 		atomic.AddUint64(&m.total, ^uint64(0))
 		return true
@@ -99,7 +113,7 @@ func (m *defMap) Len() uint64 {
 	return atomic.LoadUint64(&m.total)
 }
 
-func (m *defMap) findSegment(keyHash uint64) Segment {
+func (m *defMap) locateSegment(keyHash uint64) Segment {
 	if m.concurrency == 1 {
 		return m.segments[0]
 	}

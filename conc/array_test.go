@@ -136,34 +136,3 @@ func TestConcArrayTestSuite(t *testing.T) {
 	s := &concArrayTestSuite{}
 	suite.Run(t, s)
 }
-
-func Benchmark_Set(b *testing.B) {
-	arr, _ := NewConcurrentArray(100)
-
-	for i := 0; i < b.N; i++ {
-		for j := uint32(0); j < arr.Len(); j++ {
-			arr.Set(j, nil)
-		}
-	}
-}
-
-func Benchmark_Get(b *testing.B) {
-	arr, _ := NewConcurrentArray(100)
-
-	for i := 0; i < b.N; i++ {
-		for j := uint32(0); j < arr.Len(); j++ {
-			arr.Get(j)
-		}
-	}
-}
-
-func Benchmark_SetGet(b *testing.B) {
-	arr, _ := NewConcurrentArray(100)
-
-	for i := 0; i < b.N; i++ {
-		for j := uint32(0); j < arr.Len(); j++ {
-			arr.Set(j, nil)
-			arr.Get(j)
-		}
-	}
-}
