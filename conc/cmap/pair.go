@@ -103,6 +103,7 @@ func (p *pair) SetNext(n Pair) error {
 	if !ok {
 		return newInvalidPairTypeError(fmt.Sprintf("%T", n))
 	}
+
 	atomic.StorePointer(&p.next, unsafe.Pointer(pp))
 	return nil
 }

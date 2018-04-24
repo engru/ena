@@ -32,7 +32,7 @@ const (
 
 // PairRedistributor defines for pair redistributor in Bucket
 type PairRedistributor interface {
-	UpdateThreshold(pairTotal uint64, bucketNumber int)
+	UpdateThreshold(pairTotal uint64, bucketNumber uint32)
 	CheckBucketStatus(pairTotal uint64, bucketSize uint64) BucketStatus
 	Redistribe(bucketStatus BucketStatus, buckets []Bucket) ([]Bucket, bool)
 }
@@ -44,7 +44,7 @@ type defPairRedistributor struct {
 	emptyBucketCount      uint64
 }
 
-func newPairRedistributor(loadFactor float64, bucketNumber int) PairRedistributor {
+func newPairRedistributor(loadFactor float64, bucketNumber uint32) PairRedistributor {
 	if loadFactor < 0 {
 		loadFactor = DefaultBucketLoadFactor
 	}
@@ -64,7 +64,7 @@ var bucketCountTemplate = `Bucket count:
 
 `
 
-func (p *defPairRedistributor) UpdateThreshold(pairTotal uint64, bucketNumber int) {
+func (p *defPairRedistributor) UpdateThreshold(pairTotal uint64, bucketNumber uint32) {
 	var average float64
 	average = float64(pairTotal / uint64(bucketNumber))
 	if average < 100 {

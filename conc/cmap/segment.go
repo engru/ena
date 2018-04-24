@@ -31,15 +31,15 @@ type Segment interface {
 
 type segment struct {
 	buckets           []Bucket
-	bucketLen         int
+	bucketLen         uint32
 	pairTotal         uint64
 	pairRedistributor PairRedistributor
 	lock              sync.Mutex
 }
 
-func newSegment(bucketNumber int, pairRedistributor PairRedistributor) Segment {
+func newSegment(bucketNumber uint32, pairRedistributor PairRedistributor) Segment {
 	if bucketNumber < 0 {
-		bucketNumber = int(DefaultBucketNumber)
+		bucketNumber = DefaultBucketNumber
 	}
 
 	if pairRedistributor == nil {
@@ -47,7 +47,7 @@ func newSegment(bucketNumber int, pairRedistributor PairRedistributor) Segment {
 	}
 
 	buckets := make([]Bucket, bucketNumber)
-	for i := 0; i < bucketNumber; i++ {
+	for i := uint32(0); i < bucketNumber; i++ {
 		buckets[i] = newBucket()
 	}
 
@@ -121,7 +121,7 @@ func (s *segment) redistribute(pairTotal uint64, bucketSize uint64) (err error) 
 	newBuckets, changed := s.pairRedistributor.Redistribe(bucketStatus, s.buckets)
 	if changed {
 		s.buckets = newBuckets
-		s.bucketLen = len(s.buckets)
+		s.bucketLen = uint32(len(s.buckets))
 	}
 
 	return nil

@@ -50,7 +50,7 @@ func NewMap(concurrency uint32, pairRedistributor PairRedistributor) (Map, error
 	m.concurrency = concurrency
 	m.segments = make([]Segment, concurrency)
 	for i := 0; i < int(concurrency); i++ {
-		m.segments[i] = newSegment(int(DefaultBucketNumber), pairRedistributor)
+		m.segments[i] = newSegment(DefaultBucketNumber, pairRedistributor)
 	}
 
 	return m, nil

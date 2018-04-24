@@ -17,4 +17,7 @@ package common
 const (
 	// MaxUint8 is value of uint8, equals 255
 	MaxUint8 = ^uint8(0)
+
+	// MaxUint64 is value of uint64, equals 0xFFFFFFFFFFFFFFFF
+	MaxUint64 = ^uint64(0)
 )

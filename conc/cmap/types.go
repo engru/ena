@@ -20,7 +20,7 @@ const (
 	DefaultBucketLoadFactor float64 = 0.75
 
 	// DefaultBucketNumber is the default bucket number in a hash segment
-	DefaultBucketNumber uint = 16
+	DefaultBucketNumber uint32 = 16
 
 	// DefaultBucketMaxSize is the max size of bucket
 	DefaultBucketMaxSize uint64 = 1000
