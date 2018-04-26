@@ -12,4 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package store
+package fs
+
+import "sync"
+
+// ResultHistory is Action history store
+type ResultHistory struct {
+	Queue *resultQueue
+	rwl   sync.RWMutex
+}
+
+func newResultHistory(capacity int) *ResultHistory {
+	return &ResultHistory{
+		Queue: &resultQueue{
+			Capacity: capacity,
+			Results:  make([]*Result, capacity),
+		},
+	}
+}
+
+func (h *ResultHistory) addResult(r *Result) *Result {
+	h.rwl.Lock()
+	defer h.rwl.Unlock()
+
+	h.Queue.insert(r)
+	return r
+}
+
+func (h *ResultHistory) clone() *ResultHistory {
+	return &ResultHistory{
+		Queue: h.Queue.clone(),
+	}
+}

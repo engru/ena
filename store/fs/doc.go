@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package store defines in-memory kv store
-package store
+// Package fs defines in-memory kv store behavior as filesystem
+package fs

@@ -24,6 +24,36 @@ type mapTestSuite struct {
 	suite.Suite
 }
 
+func (s *mapTestSuite) TestPutOk() {
+	m, err := NewMap(uint32(10))
+	s.NoError(err)
+
+	b, err := m.Put("key", "value")
+	s.NoError(err)
+	s.True(b)
+}
+
+func (s *mapTestSuite) TestGetOk() {
+	m, err := NewMap(uint32(10))
+	s.NoError(err)
+
+	b, err := m.Put("key", "value")
+	s.NoError(err)
+	s.True(b)
+
+	v, b := m.Get("key")
+	s.True(b)
+	s.Equal("value", v.(string))
+
+	b, err = m.Put("key", "value2")
+	s.NoError(err)
+	s.False(b)
+
+	v, b = m.Get("key")
+	s.True(b)
+	s.Equal("value2", v.(string))
+}
+
 func TestMapTestSuite(t *testing.T) {
 	s := &mapTestSuite{}
 	suite.Run(t, s)

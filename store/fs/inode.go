@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package store
+package fs
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ type inode struct {
 
 	Expire time.Time
 	// A reference to the store this inode is attached to
-	store *defaultFileSystemStore
+	store *defFileSystemStore
 }
 
 // String implements fmt.Stringer
@@ -37,7 +37,7 @@ func (n inode) String() string {
 	return fmt.Sprintf("inode(Path=%s, Value=%s)", n.Path, n.Value)
 }
 
-func newFileInode(store *defaultFileSystemStore, nodePath string, value string, parent *inode) *inode {
+func newFileInode(store *defFileSystemStore, nodePath string, value string, parent *inode) *inode {
 	return &inode{
 		Path:   nodePath,
 		Value:  value,
@@ -46,7 +46,7 @@ func newFileInode(store *defaultFileSystemStore, nodePath string, value string, 
 	}
 }
 
-func newDirInode(store *defaultFileSystemStore, nodePath string, parent *inode) *inode {
+func newDirInode(store *defFileSystemStore, nodePath string, parent *inode) *inode {
 	return &inode{
 		Path:     nodePath,
 		Parent:   parent,

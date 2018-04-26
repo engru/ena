@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package store
+package fs
 
 import (
 	"testing"
@@ -20,20 +20,20 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type defaultFileSystemStoreTestSuite struct {
+type defFileSystemStoreTestSuite struct {
 	suite.Suite
-	store *defaultFileSystemStore
+	store *defFileSystemStore
 }
 
-func (s *defaultFileSystemStoreTestSuite) SetupTest() {
-	s.store = newDefaultFileSystemStore()
+func (s *defFileSystemStoreTestSuite) SetupTest() {
+	s.store = newDefFileSystemStore()
 }
 
-func (s *defaultFileSystemStoreTestSuite) TearDownTest() {
+func (s *defFileSystemStoreTestSuite) TearDownTest() {
 	s.store = nil
 }
 
-func (s *defaultFileSystemStoreTestSuite) TestSetOk() {
+func (s *defFileSystemStoreTestSuite) TestSetOk() {
 	r, err := s.store.Set("xxx", false, "xxx")
 	s.Suite.NoError(err)
 
@@ -44,7 +44,7 @@ func (s *defaultFileSystemStoreTestSuite) TestSetOk() {
 	s.Nil(r.PrevNode)
 }
 
-func (s *defaultFileSystemStoreTestSuite) TestGetOk() {
+func (s *defFileSystemStoreTestSuite) TestGetOk() {
 	_, err := s.store.Set("xxx", false, "xxx")
 	s.Suite.NoError(err)
 
@@ -57,7 +57,7 @@ func (s *defaultFileSystemStoreTestSuite) TestGetOk() {
 	s.Nil(r.PrevNode)
 }
 
-func (s *defaultFileSystemStoreTestSuite) TestUpdateOk() {
+func (s *defFileSystemStoreTestSuite) TestUpdateOk() {
 	_, err := s.store.Set("xxx", false, "xxx")
 	s.Suite.NoError(err)
 
@@ -73,7 +73,7 @@ func (s *defaultFileSystemStoreTestSuite) TestUpdateOk() {
 	s.Equal("xxx", *(r.PrevNode.Value))
 }
 
-func (s *defaultFileSystemStoreTestSuite) TestCreateOk() {
+func (s *defFileSystemStoreTestSuite) TestCreateOk() {
 	r, err := s.store.Create("xxx", false, "xxx")
 	s.Suite.NoError(err)
 
@@ -84,7 +84,7 @@ func (s *defaultFileSystemStoreTestSuite) TestCreateOk() {
 	s.Nil(r.PrevNode)
 }
 
-func (s *defaultFileSystemStoreTestSuite) TestDeleteOk() {
+func (s *defFileSystemStoreTestSuite) TestDeleteOk() {
 	_, err := s.store.Create("xxx", false, "xxx")
 	s.NoError(err)
 
@@ -101,6 +101,6 @@ func (s *defaultFileSystemStoreTestSuite) TestDeleteOk() {
 }
 
 func TestStoreTestSuite(t *testing.T) {
-	s := &defaultFileSystemStoreTestSuite{}
+	s := &defFileSystemStoreTestSuite{}
 	suite.Run(t, s)
 }

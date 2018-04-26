@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package store
+package fs
 
 import (
 	"errors"
@@ -22,8 +22,8 @@ import (
 	"github.com/lsytj0413/ena/cerror"
 )
 
-// FileSystemStore defines a filesystem like kv store
-type FileSystemStore interface {
+// Store defines a filesystem like kv store
+type Store interface {
 	// Get nodePath node infomation
 	Get(nodePath string, recursive bool, sorted bool) (*Result, error)
 	// Set value to nodePath
@@ -40,8 +40,8 @@ type FileSystemStore interface {
 	Watch(key string, recursive bool) (Watcher, error)
 }
 
-// defaultFileSystemStore implemented FileSystemStore interface
-type defaultFileSystemStore struct {
+// defFileSystemStore implemented FileSystemStore interface
+type defFileSystemStore struct {
 	Root *inode
 	lock sync.RWMutex
 
@@ -49,13 +49,13 @@ type defaultFileSystemStore struct {
 	watcherHub WatcherHub
 }
 
-// NewFileSystemStore creates a FileSystemStore with root directories
-func NewFileSystemStore() FileSystemStore {
-	return newDefaultFileSystemStore()
+// New creates a FileSystemStore with root directories
+func New() Store {
+	return newDefFileSystemStore()
 }
 
-func newDefaultFileSystemStore() *defaultFileSystemStore {
-	s := new(defaultFileSystemStore)
+func newDefFileSystemStore() *defFileSystemStore {
+	s := new(defFileSystemStore)
 	s.Root = newDirInode(s, "/", nil)
 	s.stater = newStater()
 	s.watcherHub = newWatchHub(1000)
@@ -63,13 +63,13 @@ func newDefaultFileSystemStore() *defaultFileSystemStore {
 }
 
 // Stater returns the store.Stater object
-func (s *defaultFileSystemStore) Stater() Stater {
+func (s *defFileSystemStore) Stater() Stater {
 	return s.stater
 }
 
 // Get returns Node which the nodePath specified
 // If recursive is true, it will return all the content under the node path
-func (s *defaultFileSystemStore) Get(nodePath string, recursive bool, sorted bool) (*Result, error) {
+func (s *defFileSystemStore) Get(nodePath string, recursive bool, sorted bool) (*Result, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -93,7 +93,7 @@ func (s *defaultFileSystemStore) Get(nodePath string, recursive bool, sorted boo
 }
 
 // Set create of replace the node at nodePath
-func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*Result, error) {
+func (s *defFileSystemStore) Set(nodePath string, dir bool, value string) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -141,7 +141,7 @@ func (s *defaultFileSystemStore) Set(nodePath string, dir bool, value string) (*
 
 // Update updates the value of the node
 // If the node is a directory, Update will fail
-func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Result, error) {
+func (s *defFileSystemStore) Update(nodePath string, newValue string) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -180,7 +180,7 @@ func (s *defaultFileSystemStore) Update(nodePath string, newValue string) (*Resu
 // Create creates the node at nodePath.
 // If the node has already exists, create will fail
 // If any node on the path is file, create will fail
-func (s *defaultFileSystemStore) Create(nodePath string, dir bool, value string) (*Result, error) {
+func (s *defFileSystemStore) Create(nodePath string, dir bool, value string) (*Result, error) {
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -207,7 +207,7 @@ func (s *defaultFileSystemStore) Create(nodePath string, dir bool, value string)
 // create creates the node at nodePath
 // If the node has already exists, fail with EcodeExists
 // If any node on the path is file, fail with EcodeNotDir
-func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string) (*inode, error) {
+func (s *defFileSystemStore) create(nodePath string, dir bool, value string) (*inode, error) {
 	nodePath = key(nodePath)
 	dirName, nodeName := split(nodePath)
 
@@ -235,7 +235,7 @@ func (s *defaultFileSystemStore) create(nodePath string, dir bool, value string)
 // If is directory, return inode
 // If does not exsits, create a new directory and return inode
 // If is file and exists, return EcodeNotDir
-func (s *defaultFileSystemStore) createDir(parent *inode, dirName string) (*inode, error) {
+func (s *defFileSystemStore) createDir(parent *inode, dirName string) (*inode, error) {
 	node, ok := parent.Children[dirName]
 	if ok {
 		if node.IsDir() {
@@ -252,7 +252,7 @@ func (s *defaultFileSystemStore) createDir(parent *inode, dirName string) (*inod
 
 // Delete deletes the node at the given path
 // If the node is a directory, recursive must be true to delete it
-func (s *defaultFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (*Result, error) {
+func (s *defFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (*Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -287,7 +287,7 @@ func (s *defaultFileSystemStore) Delete(nodePath string, dir bool, recursive boo
 	return r, nil
 }
 
-func (s *defaultFileSystemStore) Watch(nodePath string, recursive bool) (Watcher, error) {
+func (s *defFileSystemStore) Watch(nodePath string, recursive bool) (Watcher, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -301,7 +301,7 @@ func (s *defaultFileSystemStore) Watch(nodePath string, recursive bool) (Watcher
 }
 
 // get find the nodePath inode
-func (s *defaultFileSystemStore) get(nodePath string) (*inode, error) {
+func (s *defFileSystemStore) get(nodePath string) (*inode, error) {
 	nodePath = key(nodePath)
 
 	walkFunc := func(parent *inode, name string) (*inode, error) {

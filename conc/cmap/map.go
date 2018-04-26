@@ -26,7 +26,7 @@ type Map interface {
 	// Concurrency returns the Concurrency Number for Map
 	Concurrency() uint32
 
-	// Put a key-value to Map, return true if key exists
+	// Put a key-value to Map, return true if key not exists
 	Put(key string, element interface{}) (bool, error)
 
 	// Get the value associate with the key
