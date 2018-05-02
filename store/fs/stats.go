@@ -49,8 +49,8 @@ type Stater interface {
 	Clone() Stater
 }
 
-// defaultStats struct holds the stats data
-type defaultStats struct {
+// defStats struct holds the stats data
+type defStats struct {
 	GetSuccess uint64 `json:"getSuccess"`
 	GetFail    uint64 `json:"getFail"`
 
@@ -68,11 +68,11 @@ type defaultStats struct {
 }
 
 func newStater() Stater {
-	return &defaultStats{}
+	return &defStats{}
 }
 
-func (s *defaultStats) Clone() Stater {
-	return &defaultStats{
+func (s *defStats) Clone() Stater {
+	return &defStats{
 		GetSuccess:    s.GetSuccess,
 		GetFail:       s.GetFail,
 		SetSuccess:    s.SetSuccess,
@@ -86,13 +86,13 @@ func (s *defaultStats) Clone() Stater {
 	}
 }
 
-func (s *defaultStats) toJSON() []byte {
+func (s *defStats) toJSON() []byte {
 	b, _ := json.Marshal(s)
 	return b
 }
 
 // Inc will increment the stats value specified by field define
-func (s *defaultStats) Inc(field int) {
+func (s *defStats) Inc(field int) {
 	switch field {
 	case SetSuccess:
 		atomic.AddUint64(&s.SetSuccess, 1)

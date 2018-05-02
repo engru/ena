@@ -136,6 +136,10 @@ func (s *defFileSystemStore) Set(nodePath string, dir bool, value string) (*Resu
 	if prevNode != nil {
 		e.PrevNode = inodeToNode(prevNode, false, false)
 	}
+
+	// notify watcher
+	s.watcherHub.notify(e)
+
 	return e, nil
 }
 
@@ -174,6 +178,10 @@ func (s *defFileSystemStore) Update(nodePath string, newValue string) (*Result, 
 	}
 
 	r.CurrNode = inodeToNode(n, false, false)
+
+	// notify watcher
+	s.watcherHub.notify(r)
+
 	return r, nil
 }
 
@@ -201,6 +209,9 @@ func (s *defFileSystemStore) Create(nodePath string, dir bool, value string) (*R
 
 	e := newResult(Create)
 	e.CurrNode = inodeToNode(n, false, false)
+
+	s.watcherHub.notify(e)
+
 	return e, nil
 }
 
@@ -284,6 +295,9 @@ func (s *defFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (
 	if err != nil {
 		return nil, err
 	}
+
+	s.watcherHub.notify(r)
+
 	return r, nil
 }
 
