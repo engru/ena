@@ -36,10 +36,14 @@ type defWait struct {
 	m     map[uint64]chan interface{}
 }
 
+const (
+	defaultMapSize = 1000
+)
+
 // New creates a Wait object
 func New() Wait {
 	return &defWait{
-		m: make(map[uint64]chan interface{}),
+		m: make(map[uint64]chan interface{}, defaultMapSize),
 	}
 }
 
@@ -73,6 +77,7 @@ func (w *defWait) Trigger(id uint64, x interface{}) error {
 
 	select {
 	case c <- x:
+		close(c)
 		return nil
 	default:
 		return fmt.Errorf("Wait.Trigger Failed: id=%d timeout", id)

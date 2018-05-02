@@ -291,6 +291,7 @@ func (s *defFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (
 	r.PrevNode = inodeToNode(n, false, false)
 	r.CurrNode = inodeToNode(n, false, false)
 
+	// BUG: notifyWatchers when delete children node
 	err = n.Remove(dir, recursive)
 	if err != nil {
 		return nil, err

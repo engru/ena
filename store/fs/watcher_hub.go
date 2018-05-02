@@ -53,6 +53,13 @@ func (h *watcherHub) add(r *Result) {
 
 func (h *watcherHub) notify(r *Result) {
 	h.add(r)
+
+	segments := segments(r.CurrNode.Key)
+	currPath := "/"
+	for _, segment := range segments {
+		currPath = key(currPath, segment)
+		h.notifyWatchers(r, currPath, false)
+	}
 }
 
 func (h *watcherHub) notifyWatchers(r *Result, nodePath string, deleted bool) {
