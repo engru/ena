@@ -54,10 +54,10 @@ func (h *watcherHub) add(r *Result) {
 func (h *watcherHub) notify(r *Result) {
 	h.add(r)
 
-	segments := segments(r.CurrNode.Key)
+	segments := components(r.CurrNode.Key)
 	currPath := "/"
 	for _, segment := range segments {
-		currPath = key(currPath, segment)
+		currPath = keyFromDirAndFile(currPath, segment)
 		h.notifyWatchers(r, currPath, false)
 	}
 }
