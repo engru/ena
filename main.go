@@ -3,14 +3,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/lsytj0413/ena/atexit"
+	"github.com/lsytj0413/ena/algo"
 )
 
 func main() {
-	atexit.RegisterHandler(func() {
-		fmt.Println("handler 0")
-	})
-
-	atexit.HandleInterrupts()
-	// atexit.Exit(0)
+	s, l := algo.FindNoRepeat("aabcceddabc")
+	fmt.Println(s)
+	fmt.Println(l)
 }
