@@ -18,6 +18,7 @@ package atexit
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"sync"
@@ -33,12 +34,17 @@ var (
 	exitMutex     sync.Mutex
 
 	ctx, cancel = context.WithCancel(context.Background())
+
+	// ErrWriter for error log, os.Stderr is default
+	ErrWriter io.Writer
+	// StdWriter for normal log, os.Stdout is default
+	StdWriter io.Writer
 )
 
 func runHandler(handler Handler) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Fprintf(os.Stderr, "atexit: error on hander, %v", err)
+			fmt.Fprintf(ErrWriter, "atexit: error on hander, %v", err)
 		}
 	}()
 
@@ -95,7 +101,7 @@ func HandleInterrupts() {
 		exitMutex.Lock()
 		defer exitMutex.Unlock()
 
-		fmt.Printf("atexit: received %v signal, shutting down...", sig)
+		fmt.Fprintf(StdWriter, "atexit: received %v signal, shutting down...", sig)
 
 		runHandlers(tmpHandlers)
 
@@ -108,7 +114,12 @@ func HandleInterrupts() {
 
 		err := syscall.Kill(pid, sig.(syscall.Signal))
 		if err != nil {
-			fmt.Printf("atexit: kill %v error, %v", pid, err)
+			fmt.Fprintf(ErrWriter, "atexit: kill %v error, %v", pid, err)
 		}
 	}()
+}
+
+func init() {
+	ErrWriter = os.Stderr
+	StdWriter = os.Stdout
 }
