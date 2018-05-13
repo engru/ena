@@ -14,8 +14,6 @@
 
 package algo
 
-import "fmt"
-
 // FindNoRepeat will find the longest norepeat substring
 func FindNoRepeat(src string) (string, int) {
 	if src == "" {
@@ -33,7 +31,6 @@ func findNoRepeatImpl(src []rune) (string, int) {
 	cachedIndex[src[0]] = 0
 
 	for i := 1; i < len(src); i++ {
-		fmt.Println(string(src[i]))
 
 		lastIndex, exists := cachedIndex[src[i]]
 		if exists && lastIndex >= startIndex {

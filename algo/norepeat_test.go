@@ -161,6 +161,26 @@ func (s *norepeatTestSuite) TestLenMulti() {
 			no:    "dabc",
 			len:   4,
 		},
+		{
+			value: "abcabcbb",
+			no:    "abc",
+			len:   3,
+		},
+		{
+			value: "bbbbb",
+			no:    "b",
+			len:   1,
+		},
+		{
+			value: "pwwkew",
+			no:    "wke",
+			len:   3,
+		},
+		{
+			value: "qpxrjxkltzyx",
+			no:    "rjxkltzy",
+			len:   8,
+		},
 	}
 
 	for _, v := range vs {
