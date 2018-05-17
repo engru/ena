@@ -12,8 +12,10 @@ import (
 )
 
 const (
+	// Address ...
 	Address = "127.0.0.1:50052"
 
+	// OpenTLS ...
 	OpenTLS = true
 )
 
