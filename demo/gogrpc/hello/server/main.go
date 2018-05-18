@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	pb "github.com/lsytj0413/gogrpc/proto"
+	pb "github.com/lsytj0413/ena/demo/gogrpc/proto"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 	"google.golang.org/grpc"
