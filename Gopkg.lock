@@ -33,6 +33,18 @@
   version = "v3.2.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/globalsign/mgo"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "efe0945164a7e582241f37ae8983c075f8f2e870"
+
+[[projects]]
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -165,6 +177,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "af1385fe49b0a4d76eac42ac53f49aa4f79dcb33d0b3786e5b478ac624f38fff"
+  inputs-digest = "9c8c52117aeb36f752ed91537bedbf1ec3ca7561026eec1401ed9609aebc9e2e"
   solver-name = "gps-cdcl"
   solver-version = 1
