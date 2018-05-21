@@ -24,6 +24,9 @@ import (
 	"google.golang.org/grpc/naming"
 )
 
+// Prefix should start and end with no slash
+var Prefix = "etcd3_naming"
+
 // watcher is the implementaion of grpc.naming.Watcher
 type watcher struct {
 	re            *resolver
