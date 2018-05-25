@@ -16,30 +16,74 @@ package common
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"reflect"
 	"regexp"
 )
 
-// Env will fill the value element with enviroment value
-func Env(value interface{}) error {
-	resultv := reflect.ValueOf(value)
-	if resultv.Kind() != reflect.Ptr || (resultv.Elem().Kind() != reflect.Struct && resultv.Elem().Kind() != reflect.String) {
+var (
+	getenv   func(string) (string, bool)
+	submatch func(string) (string, bool)
+
+	reg *regexp.Regexp
+)
+
+func envImpl(v reflect.Value) error {
+	switch v.Kind() {
+	case reflect.String:
+		replace(v)
+	case reflect.Struct:
+		n := v.NumField()
+		for i := 0; i < n; i++ {
+			field := v.Field(i)
+			if field.Kind() == reflect.String || field.Kind() == reflect.Struct {
+				if err := envImpl(field); err != nil {
+					return err
+				}
+			}
+		}
+	default:
 		return errors.New("value argument must be a struct/string address")
 	}
 
-	reg, err := regexp.Compile(`^\${(.+)}$`)
-	if err != nil {
-		return err
-	}
-	if resultv.Elem().Kind() == reflect.String {
-		env := reg.FindStringSubmatch(resultv.Elem().String())
-		if len(env) == 2 {
-			fmt.Println(os.Getenv(env[1]))
-			resultv.Elem().SetString(os.Getenv(env[1]))
+	return nil
+}
+
+func replace(v reflect.Value) {
+	env, exists := submatch(v.String())
+	if exists {
+		env, exists = getenv(env)
+		if exists {
+			v.SetString(env)
 		}
 	}
+}
 
-	return nil
+// Env will fill the value element with enviroment value
+func Env(value interface{}) error {
+	resultv := reflect.ValueOf(value)
+	if resultv.Kind() != reflect.Ptr {
+		return errors.New("value argument must be a ptr")
+	}
+
+	return envImpl(resultv.Elem())
+}
+
+func init() {
+	getenv = func(key string) (v string, exists bool) {
+		v = os.Getenv(key)
+		if v != "" {
+			exists = true
+		}
+		return
+	}
+
+	reg = regexp.MustCompile(`^\${(.+)}$`)
+	submatch = func(key string) (v string, exists bool) {
+		values := reg.FindStringSubmatch(key)
+		if len(values) == 2 {
+			v, exists = values[1], true
+		}
+		return
+	}
 }

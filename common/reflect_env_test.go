@@ -32,6 +32,32 @@ func (s *reflectEnvTest) TestString() {
 	s.Equal(os.Getenv("PATH"), src)
 }
 
+type St struct {
+	Name string
+}
+
+func (s *reflectEnvTest) TestTopStruct() {
+	src := struct {
+		Name  string
+		Value int
+		Name2 string
+		S     St
+	}{
+		Name:  "${PATH}",
+		Value: 1,
+		Name2: "${",
+		S: St{
+			Name: "${PATH}",
+		},
+	}
+	err := Env(&src)
+	s.NoError(err)
+	s.Equal(os.Getenv("PATH"), src.Name)
+	s.Equal("${", src.Name2)
+	s.Equal(1, src.Value)
+	s.Equal(os.Getenv("PATH"), src.S.Name)
+}
+
 func TestReflectEnvTestSuite(t *testing.T) {
 	p := &reflectEnvTest{}
 	suite.Run(t, p)
