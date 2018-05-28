@@ -27,7 +27,7 @@ type reflectEnvTest struct {
 
 func (s *reflectEnvTest) TestString() {
 	src := "${PATH}"
-	err := Env(&src)
+	err := ReplaceEnv(&src)
 	s.NoError(err)
 	s.Equal(os.Getenv("PATH"), src)
 }
@@ -50,7 +50,7 @@ func (s *reflectEnvTest) TestTopStruct() {
 			Name: "${PATH}",
 		},
 	}
-	err := Env(&src)
+	err := ReplaceEnv(&src)
 	s.NoError(err)
 	s.Equal(os.Getenv("PATH"), src.Name)
 	s.Equal("${", src.Name2)

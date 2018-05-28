@@ -28,7 +28,7 @@ var (
 	reg *regexp.Regexp
 )
 
-func envImpl(v reflect.Value) error {
+func replaceEnvImpl(v reflect.Value) error {
 	switch v.Kind() {
 	case reflect.String:
 		replace(v)
@@ -37,7 +37,7 @@ func envImpl(v reflect.Value) error {
 		for i := 0; i < n; i++ {
 			field := v.Field(i)
 			if field.Kind() == reflect.String || field.Kind() == reflect.Struct {
-				if err := envImpl(field); err != nil {
+				if err := replaceEnvImpl(field); err != nil {
 					return err
 				}
 			}
@@ -59,14 +59,14 @@ func replace(v reflect.Value) {
 	}
 }
 
-// Env will fill the value element with enviroment value
-func Env(value interface{}) error {
+// ReplaceEnv will fill the value element with enviroment value
+func ReplaceEnv(value interface{}) error {
 	resultv := reflect.ValueOf(value)
 	if resultv.Kind() != reflect.Ptr {
 		return errors.New("value argument must be a ptr")
 	}
 
-	return envImpl(resultv.Elem())
+	return replaceEnvImpl(resultv.Elem())
 }
 
 func init() {
