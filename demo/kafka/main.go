@@ -44,7 +44,7 @@ func producer() {
 		defer wg.Done()
 
 		for i := 0; i < count; i++ {
-			uid, _ := uuid.NewV4()
+			uid := uuid.NewV4()
 			value := uid.String() + fmt.Sprintf("%d", i)
 			msg := &sarama.ProducerMessage{
 				Topic: topic,
