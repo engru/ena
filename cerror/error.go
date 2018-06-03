@@ -38,9 +38,24 @@ func NewError(errorCode int, cause string) *Error {
 	}
 }
 
+// Is err equals the errorCode
+func Is(err error, errorCode int) bool {
+	e, ok := err.(*Error)
+	if !ok {
+		return false
+	}
+
+	return e.Is(errorCode)
+}
+
 // Error is for the error interface
 func (e Error) Error() string {
 	return e.Message + " (" + e.Cause + ")"
+}
+
+// Is check the ErrorCode is equal
+func (e Error) Is(errorCode int) bool {
+	return e.ErrorCode == errorCode
 }
 
 var (
