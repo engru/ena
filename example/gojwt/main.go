@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -46,4 +47,12 @@ func main() {
 	for k, v := range claims {
 		fmt.Println(k, ": ", v)
 	}
+
+	names, err := net.LookupIP("map.baidu.com")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(names)
 }
