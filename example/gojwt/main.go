@@ -55,4 +55,31 @@ func main() {
 	}
 
 	fmt.Println(names)
+
+	arr1 := []int{}
+	arr2 := []int{}
+	for i := 1; i <= 16; i++ {
+		arr1 = append(arr1, i)
+	}
+
+	for len(arr1) > 2 {
+		for i := 0; i < len(arr1); i++ {
+			arr2 = append(arr2, arr1[i])
+			i++
+		}
+		arr1, arr2 = arr2, nil
+		// fmt.Println(len(arr1))
+	}
+	fmt.Println(arr1[1])
+
+	done := false
+
+	go func() {
+		done = true
+	}()
+
+	for !done {
+		fmt.Println("not done!") //not inlined
+	}
+	fmt.Println("done!")
 }
