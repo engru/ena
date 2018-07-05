@@ -40,8 +40,9 @@ type Store interface {
 
 // defFileSystemStore implemented FileSystemStore interface
 type defFileSystemStore struct {
+	sync.RWMutex
+
 	Root *inode
-	lock sync.RWMutex
 
 	stater     Stater
 	watcherHub WatcherHub
@@ -68,8 +69,8 @@ func (s *defFileSystemStore) Stater() Stater {
 // Get returns Node which the nodePath specified
 // If recursive is true, it will return all the content under the node path
 func (s *defFileSystemStore) Get(nodePath string, recursive bool, sorted bool) (*Result, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.RLock()
+	defer s.RUnlock()
 
 	var err error
 	defer func() {
@@ -92,8 +93,8 @@ func (s *defFileSystemStore) Get(nodePath string, recursive bool, sorted bool) (
 
 // Set create of replace the node at nodePath
 func (s *defFileSystemStore) Set(nodePath string, dir bool, value string) (*Result, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 
 	var err error
 	defer func() {
@@ -142,8 +143,8 @@ func (s *defFileSystemStore) Set(nodePath string, dir bool, value string) (*Resu
 // Update updates the value of the node
 // If the node is a directory, Update will fail
 func (s *defFileSystemStore) Update(nodePath string, newValue string) (*Result, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 
 	var err error
 	defer func() {
@@ -185,9 +186,8 @@ func (s *defFileSystemStore) Update(nodePath string, newValue string) (*Result, 
 // If the node has already exists, create will fail
 // If any node on the path is file, create will fail
 func (s *defFileSystemStore) Create(nodePath string, dir bool, value string) (*Result, error) {
-
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 
 	var err error
 	defer func() {
@@ -260,8 +260,8 @@ func (s *defFileSystemStore) createDir(parent *inode, dirName string) (*inode, e
 // Delete deletes the node at the given path
 // If the node is a directory, recursive must be true to delete it
 func (s *defFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (*Result, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 
 	var err error
 	defer func() {
@@ -299,8 +299,8 @@ func (s *defFileSystemStore) Delete(nodePath string, dir bool, recursive bool) (
 }
 
 func (s *defFileSystemStore) Watch(nodePath string, recursive bool) (Watcher, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.RLock()
+	defer s.RUnlock()
 
 	nodePath = key(nodePath)
 	w, err := s.watcherHub.watch(nodePath, recursive)
