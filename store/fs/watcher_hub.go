@@ -32,15 +32,13 @@ type WatcherHub interface {
 type watcherHub struct {
 	sync.Mutex
 
-	count         int64 // current number of watchers
-	watchers      map[string]*list.List
-	resultHistory *ResultHistory
+	count    int64 // current number of watchers
+	watchers map[string]*list.List
 }
 
 func newWatchHub(capacity int) WatcherHub {
 	return &watcherHub{
-		watchers:      make(map[string]*list.List),
-		resultHistory: newResultHistory(capacity),
+		watchers: make(map[string]*list.List),
 	}
 }
 
@@ -81,7 +79,7 @@ func (h *watcherHub) watch(key string, recursive bool) (Watcher, error) {
 }
 
 func (h *watcherHub) add(r *Result) {
-	h.resultHistory.addResult(r)
+	// h.resultHistory.addResult(r)
 }
 
 func (h *watcherHub) notify(r *Result) {

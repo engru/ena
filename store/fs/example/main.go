@@ -28,6 +28,8 @@ func main() {
 	r = <-w.ResultChan()
 	fmt.Println(r)
 
+	w.Remove()
+
 	r, err = store.Set("/test", false, "test2")
 	fmt.Println(err)
 	fmt.Println(r)
