@@ -16,7 +16,7 @@ package fs
 
 // Watcher defines a interface for notice the store operate Result
 type Watcher interface {
-	ResultChan() chan *Result
+	ResultChan() <-chan *Result
 	Remove()
 	notify(*Result, bool, bool) bool
 }
@@ -31,7 +31,7 @@ type defWatcher struct {
 	remove  func()
 }
 
-func (w *defWatcher) ResultChan() chan *Result {
+func (w *defWatcher) ResultChan() <-chan *Result {
 	return w.resultChan
 }
 
