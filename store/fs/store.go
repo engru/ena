@@ -18,8 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-
-	"github.com/lsytj0413/ena/cerror"
 )
 
 // Store defines a filesystem like kv store
@@ -108,10 +106,8 @@ func (s *defFileSystemStore) Set(nodePath string, dir bool, value string) (*Resu
 
 	// First, get prevNode Value
 	prevNode, err := s.get(nodePath)
-	if err != nil {
-		if e := err.(*cerror.Error); e.ErrorCode != EcodeNotExists {
-			return nil, err
-		}
+	if err != nil && !Is(err, EcodeNotExists) {
+		return nil, err
 	}
 
 	// remove exists inode before create

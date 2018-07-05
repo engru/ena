@@ -12,6 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package fs defines in-memory kv store behavior as filesystem
-// from: etcd v2.store
 package fs
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+)
+
+type defKeyHeapTestSuite struct {
+	suite.Suite
+}
+
+func TestDefKeyHeapTestSuite(t *testing.T) {
+	s := &defKeyHeapTestSuite{}
+	suite.Run(t, s)
+}
