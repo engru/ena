@@ -8,12 +8,6 @@
   version = "v1.16.0"
 
 [[projects]]
-  name = "github.com/Sirupsen/logrus"
-  packages = ["."]
-  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
-  version = "v1.0.5"
-
-[[projects]]
   name = "github.com/coreos/etcd"
   packages = [
     "auth/authpb",
@@ -136,6 +130,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
+
+[[projects]]
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
@@ -240,6 +240,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3a470958abc104f3e7cbf6b815c85079b770527235526c82255b0ad3afc1010b"
+  inputs-digest = "14ac6eb6e4ccb31001837fd74363d65ee4f8849cc045e0f9062fc5d34aa2417c"
   solver-name = "gps-cdcl"
   solver-version = 1

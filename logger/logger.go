@@ -16,44 +16,10 @@
 package logger
 
 import (
-	"fmt"
 	"os"
-	"path"
-	"runtime"
-	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
-
-type contextHook struct {
-}
-
-func (contextHook) Levels() []logrus.Level {
-	return logrus.AllLevels
-}
-
-func (contextHook) Fire(entry *logrus.Entry) error {
-	entry.Data["file"] = "unknown:unknown:0"
-
-	pc := make([]uintptr, 3, 3)
-	cnt := runtime.Callers(7, pc)
-	found := false
-	for i := 0; i < cnt; i++ {
-		fu := runtime.FuncForPC(pc[i] - 1)
-		name := fu.Name()
-		if !strings.Contains(name, "github.com/Sirupsen/logrus") && !found {
-			found = true
-			continue
-		}
-		if found {
-			file, line := fu.FileLine(pc[i] - 1)
-			entry.Data["file"] = fmt.Sprintf("%v:%v:%v", path.Base(file), path.Base(name), line)
-			break
-		}
-	}
-
-	return nil
-}
 
 var log = logrus.New()
 
@@ -153,7 +119,7 @@ func SetLogLevel(v LogLevel) {
 func init() {
 	log.Out = os.Stdout
 	log.Level = logrus.InfoLevel
-	log.AddHook(contextHook{})
+	log.AddHook(callerHook{})
 
 	formatter := logrus.TextFormatter{DisableTimestamp: false,
 		FullTimestamp:   true,
