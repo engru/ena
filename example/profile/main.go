@@ -1,15 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
+	"sync"
 	"sync/atomic"
 )
 
 var visitors int64
 var colorRx = regexp.MustCompile(`^\w*$`)
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
+}
 
 func handleHi(w http.ResponseWriter, r *http.Request) {
 	if !colorRx.MatchString(r.FormValue("color")) {
@@ -18,7 +25,16 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 	}
 	visitNum := atomic.AddInt64(&visitors, 1)
 
-	fmt.Fprintf(w, "<html><h1 style='color: \"%s\"'>Welcome!</h1>You are visitor number %d!", r.FormValue("color"), visitNum)
+	buf := bufPool.Get().(*bytes.Buffer)
+	defer bufPool.Put(buf)
+
+	buf.Reset()
+	buf.WriteString("<h1 style='color: ")
+	buf.WriteString(r.FormValue("color"))
+	buf.WriteString(">Welcome!</h1>You are visitor number ")
+	b := strconv.AppendInt(buf.Bytes(), int64(visitNum), 10)
+	b = append(b, '!')
+	w.Write(b)
 
 	return
 }
