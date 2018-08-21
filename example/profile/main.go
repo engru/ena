@@ -11,15 +11,19 @@ import (
 )
 
 var visitors int64
-var colorRx = regexp.MustCompile(`^\w*$`)
 var bufPool = sync.Pool{
 	New: func() interface{} {
 		return new(bytes.Buffer)
 	},
 }
+var colorRxPool = sync.Pool{
+	New: func() interface{} {
+		return regexp.MustCompile(`^\w*$`)
+	},
+}
 
 func handleHi(w http.ResponseWriter, r *http.Request) {
-	if !colorRx.MatchString(r.FormValue("color")) {
+	if !colorRxPool.Get().(*regexp.Regexp).MatchString(r.FormValue("color")) {
 		http.Error(w, "Optional color is valid", http.StatusBadRequest)
 		return
 	}

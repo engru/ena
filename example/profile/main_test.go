@@ -110,3 +110,14 @@ func reset(rw *httptest.ResponseRecorder) {
 		HeaderMap: m,
 	}
 }
+
+func BenchmarkHiParallel(b *testing.B) {
+	r := req(b, "GET / HTTP/1.0\r\n\r\n")
+	b.RunParallel(func(pb *testing.PB) {
+		rw := httptest.NewRecorder()
+		for pb.Next() {
+			handleHi(rw, r)
+			reset(rw)
+		}
+	})
+}
