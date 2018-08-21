@@ -18,8 +18,8 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 	}
 	visitNum := atomic.AddInt64(&visitors, 1)
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte("<h1 style='color: " + r.FormValue("color") + "'>Welcome!</h1>You are visitor number " + fmt.Sprint(visitNum) + "!"))
+	fmt.Fprintf(w, "<html><h1 style='color: \"%s\"'>Welcome!</h1>You are visitor number %d!", r.FormValue("color"), visitNum)
+
 	return
 }
 

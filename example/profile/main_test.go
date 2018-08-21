@@ -93,5 +93,20 @@ func BenchmarkHi(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		rw := httptest.NewRecorder()
 		handleHi(rw, r)
+		reset(rw)
+	}
+}
+
+func reset(rw *httptest.ResponseRecorder) {
+	m := rw.HeaderMap
+	for k := range m {
+		delete(m, k)
+	}
+
+	body := rw.Body
+	body.Reset()
+	*rw = httptest.ResponseRecorder{
+		Body:      body,
+		HeaderMap: m,
 	}
 }
