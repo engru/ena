@@ -5,9 +5,10 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sync/atomic"
 )
 
-var visitors int
+var visitors int64
 var colorRx = regexp.MustCompile(`^\w*$`)
 
 func handleHi(w http.ResponseWriter, r *http.Request) {
@@ -15,10 +16,10 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Optional color is valid", http.StatusBadRequest)
 		return
 	}
-	visitors++
+	visitNum := atomic.AddInt64(&visitors, 1)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte("<h1 style='color: " + r.FormValue("color") + "'>Welcome!</h1>You are visitor number " + fmt.Sprint(visitors) + "!"))
+	w.Write([]byte("<h1 style='color: " + r.FormValue("color") + "'>Welcome!</h1>You are visitor number " + fmt.Sprint(visitNum) + "!"))
 	return
 }
 
