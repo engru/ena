@@ -95,7 +95,7 @@ func consumer() {
 		fmt.Println("consumer: ", err)
 		return
 	}
-	fmt.Println("partitions: %v", partitions)
+	// fmt.Println("partitions: %v", partitions)
 	// partitions := []int32{0}
 
 	consumers := make([]sarama.PartitionConsumer, len(partitions))
