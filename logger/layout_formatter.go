@@ -69,5 +69,6 @@ func (l *LayoutFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	for _, c := range l.c {
 		b.WriteString(c.Convert(entry))
 	}
+
 	return b.Bytes(), nil
 }

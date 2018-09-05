@@ -15,38 +15,20 @@
 package logger
 
 import (
-	"fmt"
 	"testing"
-	"time"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/stretchr/testify/suite"
 )
 
-type layoutFormatterTestSuite struct {
+type loggerTestSuite struct {
 	suite.Suite
 }
 
-func (s *layoutFormatterTestSuite) TestPushOk() {
-	f, err := NewLayoutFormatter("[%d] [%level] [%P-%M-%L-%F]^sfd %msg xs%%re")
-	if err != nil {
-		fmt.Println(err)
-		s.Fail("err should be nil")
-	}
-
-	e := &logrus.Entry{
-		Time:    time.Now(),
-		Level:   logrus.Level(0),
-		Message: "layout test",
-	}
-	l, err := f.Format(e)
-	s.NoError(err)
-
-	fmt.Println(string(l))
+func (s *loggerTestSuite) TestPushOk() {
+	Errorf("test")
 }
 
-func TestLayoutFormatterTestSuite(t *testing.T) {
-	s := &layoutFormatterTestSuite{}
+func TestLoggerTestSuite(t *testing.T) {
+	s := &loggerTestSuite{}
 	suite.Run(t, s)
 }

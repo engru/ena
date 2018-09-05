@@ -32,6 +32,7 @@ func (callerHook) Levels() []logrus.Level {
 
 type caller struct {
 	p string // package name
+	f string // source file name
 	m string // function name
 	l string // line
 }
@@ -39,27 +40,35 @@ type caller struct {
 func (callerHook) Fire(entry *logrus.Entry) error {
 	c := &caller{
 		p: "-",
+		f: "-",
 		m: "-",
 		l: "-",
 	}
 
-	pc := make([]uintptr, 3, 3)
+	pc := make([]uintptr, 10, 10)
 	cnt := runtime.Callers(7, pc)
-	found := false
-	for i := 0; i < cnt; i++ {
-		fu := runtime.FuncForPC(pc[i] - 1)
+	var last = -1
+	for i := cnt; i >= 0; i-- {
+		fu := runtime.FuncForPC(pc[i-1])
 		name := fu.Name()
-		if !strings.Contains(name, "github.com/sirupsen/logrus") && !found {
-			found = true
-			continue
-		}
-		if found {
-			file, line := fu.FileLine(pc[i] - 1)
-			c.p = path.Base(file)
-			c.m = path.Base(name)
-			c.l = fmt.Sprintf("%v", line)
+		fmt.Println("index: ", i, name)
+
+		if strings.Contains(name, "github.com/sirupsen/logrus") {
 			break
 		}
+
+		last = i
+	}
+
+	fmt.Println(last)
+	if last != -1 && last < cnt {
+		fu := runtime.FuncForPC(pc[last])
+		name := fu.Name()
+		file, line := fu.FileLine(pc[last])
+		c.p = path.Dir(name)
+		c.f = path.Base(file)
+		c.m = path.Base(name)
+		c.l = fmt.Sprintf("%v", line)
 	}
 
 	entry.Data["logger.caller"] = c

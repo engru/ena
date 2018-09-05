@@ -30,10 +30,11 @@ var (
 func init() {
 	defaultConverterMap["d"] = &dateConverter{timestampFormat: "2006-01-02T15:04:05.000000000Z07:00"}
 	defaultConverterMap["level"] = &levelConverter{}
-	defaultConverterMap["p"] = &packageConverter{}
+	defaultConverterMap["P"] = &packageConverter{}
 	defaultConverterMap["M"] = &methodConverter{}
 	defaultConverterMap["L"] = &lineConverter{}
 	defaultConverterMap["msg"] = &msgConverter{}
+	defaultConverterMap["F"] = &fileConverter{}
 }
 
 type textConverter struct {
@@ -69,6 +70,17 @@ func (c *packageConverter) Convert(entry *logrus.Entry) string {
 	}
 
 	return d.(*caller).p
+}
+
+type fileConverter struct{}
+
+func (c *fileConverter) Convert(entry *logrus.Entry) string {
+	d, exists := entry.Data["logger.caller"]
+	if !exists {
+		return "-"
+	}
+
+	return d.(*caller).f
 }
 
 type methodConverter struct {
