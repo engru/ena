@@ -37,7 +37,7 @@ func New() Stack {
 }
 
 func (s *stack) Push(v interface{}) {
-	s.Push(v)
+	s.list.PushBack(v)
 }
 
 func (s *stack) Pop() interface{} {
