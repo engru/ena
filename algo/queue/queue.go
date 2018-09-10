@@ -31,8 +31,8 @@ type queue struct {
 	list *list.List
 }
 
-// New construct Queue
-func New() Queue {
+// NewQueue construct Queue
+func NewQueue() Queue {
 	return &queue{
 		list: list.New(),
 	}

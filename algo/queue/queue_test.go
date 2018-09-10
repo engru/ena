@@ -26,7 +26,7 @@ type queueTestSuite struct {
 }
 
 func (s *queueTestSuite) SetupTest() {
-	s.s = New()
+	s.s = NewQueue()
 }
 
 func (s *queueTestSuite) TestPushOk() {
