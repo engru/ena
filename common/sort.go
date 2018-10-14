@@ -19,37 +19,35 @@ import (
 )
 
 // Lessor is a function witch compare data's i and j element
-type Lessor = func(data interface{}, i int, j int) bool
+type Lessor = func(i int, j int) bool
 
 // Swaper is a function witch swap data's i and j element
-type Swaper = func(data interface{}, i, j int)
+type Swaper = func(i int, j int)
 
 // Lener is a function witch returns data's length
-type Lener = func(data interface{}) int
+type Lener = func() int
 
 type sortHelper struct {
-	data   interface{}
 	lessor Lessor
 	swaper Swaper
 	lener  Lener
 }
 
 func (s sortHelper) Less(i int, j int) bool {
-	return s.lessor(s.data, i, j)
+	return s.lessor(i, j)
 }
 
 func (s sortHelper) Swap(i int, j int) {
-	s.swaper(s.data, i, j)
+	s.swaper(i, j)
 }
 
 func (s sortHelper) Len() int {
-	return s.lener(s.data)
+	return s.lener()
 }
 
 // Sort is a helper function for sort.Sort
-func Sort(data interface{}, lessor Lessor, lener Lener, swaper Swaper) {
+func Sort(lessor Lessor, lener Lener, swaper Swaper) {
 	sorter := &sortHelper{
-		data:   data,
 		lessor: lessor,
 		swaper: swaper,
 		lener:  lener,

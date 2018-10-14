@@ -39,14 +39,14 @@ func (p *sortTestSuite) TestSortIntOk() {
 		},
 	}
 	for _, tc := range testcase {
-		Sort(tc.arg1, func(data interface{}, i int, j int) bool {
-			d := data.([]int)
+		Sort(func(i int, j int) bool {
+			d := tc.arg1
 			return d[i] < d[j]
-		}, func(data interface{}) int {
-			d := data.([]int)
+		}, func() int {
+			d := tc.arg1
 			return len(d)
-		}, func(data interface{}, i int, j int) {
-			d := data.([]int)
+		}, func(i int, j int) {
+			d := tc.arg1
 			d[i], d[j] = d[j], d[i]
 		})
 
@@ -69,14 +69,14 @@ func (p *sortTestSuite) TestSortStringOk() {
 		},
 	}
 	for _, tc := range testcase {
-		Sort(tc.arg1, func(data interface{}, i int, j int) bool {
-			d := data.([]string)
+		Sort(func(i int, j int) bool {
+			d := tc.arg1
 			return d[i] < d[j]
-		}, func(data interface{}) int {
-			d := data.([]string)
+		}, func() int {
+			d := tc.arg1
 			return len(d)
-		}, func(data interface{}, i int, j int) {
-			d := data.([]string)
+		}, func(i int, j int) {
+			d := tc.arg1
 			d[i], d[j] = d[j], d[i]
 		})
 
