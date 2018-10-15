@@ -54,7 +54,7 @@ func NewHash() Hasher {
 }
 
 type safeHasher struct {
-	hasher
+	Hasher
 	sync.Mutex
 }
 
@@ -62,19 +62,21 @@ func (h *safeHasher) Uint32(data []byte) uint32 {
 	h.Lock()
 	defer h.Unlock()
 
-	return h.hasher.Uint32(data)
+	return h.Hasher.Uint32(data)
 }
 
 func (h *safeHasher) Uint64(data []byte) uint64 {
 	h.Lock()
 	defer h.Unlock()
 
-	return h.hasher.Uint64(data)
+	return h.Hasher.Uint64(data)
 }
 
 // NewSafeHash returns Hasher implement, thread safe
 func NewSafeHash() Hasher {
-	return &safeHasher{}
+	return &safeHasher{
+		Hasher: NewHash(),
+	}
 }
 
 var (
