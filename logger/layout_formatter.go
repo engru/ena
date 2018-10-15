@@ -28,7 +28,8 @@ import (
 // %M method name
 // %L line
 // %msg
-// %p package name
+// %P package name
+// %F file name
 type LayoutFormatter struct {
 	pattern string
 	c       []Converter

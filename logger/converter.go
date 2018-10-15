@@ -28,13 +28,13 @@ var (
 )
 
 func init() {
-	defaultConverterMap["d"] = &dateConverter{timestampFormat: "2006-01-02T15:04:05.000000000Z07:00"}
-	defaultConverterMap["level"] = &levelConverter{}
-	defaultConverterMap["P"] = &packageConverter{}
-	defaultConverterMap["M"] = &methodConverter{}
-	defaultConverterMap["L"] = &lineConverter{}
-	defaultConverterMap["msg"] = &msgConverter{}
-	defaultConverterMap["F"] = &fileConverter{}
+	defaultConverterMap[convertKeyDate] = &dateConverter{timestampFormat: "2006-01-02T15:04:05.000000000Z07:00"}
+	defaultConverterMap[convertKeyLevel] = &levelConverter{}
+	defaultConverterMap[convertKeyPackage] = &packageConverter{}
+	defaultConverterMap[convertKeyMethod] = &methodConverter{}
+	defaultConverterMap[convertKeyLine] = &lineConverter{}
+	defaultConverterMap[convertKeyFile] = &fileConverter{}
+	defaultConverterMap[convertKeyMsg] = &msgConverter{}
 }
 
 type textConverter struct {
@@ -64,47 +64,47 @@ type packageConverter struct {
 }
 
 func (c *packageConverter) Convert(entry *logrus.Entry) string {
-	d, exists := entry.Data["logger.caller"]
+	d, exists := entry.Data[loggerCallerKeyName]
 	if !exists {
 		return "-"
 	}
 
-	return d.(*caller).p
+	return d.(*source).p
 }
 
 type fileConverter struct{}
 
 func (c *fileConverter) Convert(entry *logrus.Entry) string {
-	d, exists := entry.Data["logger.caller"]
+	d, exists := entry.Data[loggerCallerKeyName]
 	if !exists {
 		return "-"
 	}
 
-	return d.(*caller).f
+	return d.(*source).f
 }
 
 type methodConverter struct {
 }
 
 func (c *methodConverter) Convert(entry *logrus.Entry) string {
-	d, exists := entry.Data["logger.caller"]
+	d, exists := entry.Data[loggerCallerKeyName]
 	if !exists {
 		return "-"
 	}
 
-	return d.(*caller).m
+	return d.(*source).m
 }
 
 type lineConverter struct {
 }
 
 func (c *lineConverter) Convert(entry *logrus.Entry) string {
-	d, exists := entry.Data["logger.caller"]
+	d, exists := entry.Data[loggerCallerKeyName]
 	if !exists {
 		return "-"
 	}
 
-	return d.(*caller).l
+	return d.(*source).l
 }
 
 type msgConverter struct{}
