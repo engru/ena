@@ -14,6 +14,10 @@
 
 package queue
 
+import (
+	"container/list"
+)
+
 // Deque is interface for Deque Data Structure
 type Deque interface {
 	Empty() bool
@@ -24,4 +28,69 @@ type Deque interface {
 	PeekBack() interface{}
 	PushFront(interface{})
 	PushBack(interface{})
+}
+
+type deque struct {
+	l *list.List
+}
+
+func (q *deque) PushFront(v interface{}) {
+	q.l.PushFront(v)
+}
+
+func (q *deque) PushBack(v interface{}) {
+	q.l.PushBack(v)
+}
+
+func (q *deque) PeekBack() interface{} {
+	e := q.l.Back()
+	if e == nil {
+		return nil
+	}
+
+	return e.Value
+}
+
+func (q *deque) PeekFront() interface{} {
+	e := q.l.Front()
+	if e == nil {
+		return nil
+	}
+
+	return e.Value
+}
+
+func (q *deque) PollBack() interface{} {
+	e := q.l.Back()
+	if e == nil {
+		return nil
+	}
+
+	q.l.Remove(e)
+	return e.Value
+}
+
+func (q *deque) PollFront() interface{} {
+	e := q.l.Front()
+	if e == nil {
+		return nil
+	}
+
+	q.l.Remove(e)
+	return e.Value
+}
+
+func (q *deque) Empty() bool {
+	return q.l.Len() == 0
+}
+
+func (q *deque) Len() int {
+	return q.l.Len()
+}
+
+// NewDeque construct Deque
+func NewDeque() Deque {
+	return &deque{
+		l: list.New(),
+	}
 }
