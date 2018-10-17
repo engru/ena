@@ -28,44 +28,17 @@
 
 package tree
 
-// Trie is [Trie](https://en.wikipedia.org/wiki/Trie) or PrefixTree define
-type Trie interface {
-	Add(value string)
-	Search(value string) bool
-	StartsWith(value string) bool
-	Size() int
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+)
+
+type trieNodeTestSuite struct {
+	suite.Suite
 }
 
-type trie struct {
-	root  *trieNode
-	count int
-}
-
-func (p *trie) Size() int {
-	return p.root.count
-}
-
-func (p *trie) Add(value string) {
-	p.count++
-	p.root.Add(value)
-}
-
-func (p *trie) Search(value string) bool {
-	return p.root.Search(value)
-}
-
-func (p *trie) StartsWith(value string) bool {
-	return p.root.StartsWith(value)
-}
-
-// NewTrie returns Trie implement
-func NewTrie() Trie {
-	return &trie{
-		root: &trieNode{
-			key:      "",
-			count:    0,
-			children: []*trieNode{},
-		},
-		count: 0,
-	}
+func TestTrieNodeTestSuite(t *testing.T) {
+	s := &trieNodeTestSuite{}
+	suite.Run(t, s)
 }
