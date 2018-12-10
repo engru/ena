@@ -49,8 +49,8 @@ func (s *consistentSafeTestSuite) TestHash() {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 
 			for i := 0; i < len(values); i++ {

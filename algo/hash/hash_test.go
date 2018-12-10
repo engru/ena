@@ -64,12 +64,14 @@ func (s *hashTestSuite) TestSafeHasherUint32() {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 
 			for _, data := range datas {
-				s.Equal(hashUint32([]byte(data)), h.Uint32([]byte(data)))
+				expect := hashUint32([]byte(data))
+				actual := h.Uint32([]byte(data))
+				s.Equal(expect, actual)
 			}
 		}()
 	}
@@ -85,12 +87,14 @@ func (s *hashTestSuite) TestSafeHasherUint64() {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 
 			for _, data := range datas {
-				s.Equal(hashUint64([]byte(data)), h.Uint64([]byte(data)))
+				expect := hashUint64([]byte(data))
+				actual := h.Uint64([]byte(data))
+				s.Equal(expect, actual)
 			}
 		}()
 	}
