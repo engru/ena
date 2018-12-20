@@ -12,15 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package logger
+package convert
 
-import "fmt"
+import (
+	"fmt"
+	"testing"
 
-type token struct {
-	t string // token type, one of 't', 'c',
-	v string // token value
+	"github.com/stretchr/testify/suite"
+)
+
+type utilTestSuite struct {
+	suite.Suite
 }
 
-func (t *token) String() string {
-	return fmt.Sprintf("token(t: %s, v:%s)", t.t, t.v)
+func (s *utilTestSuite) TestPushOk() {
+	tokens, err := ParseToLayoutField("%%123%acb%%c")
+
+	fmt.Println(tokens)
+	fmt.Println(err)
+}
+
+func TestUtilTestSuite(t *testing.T) {
+	s := &utilTestSuite{}
+	suite.Run(t, s)
 }

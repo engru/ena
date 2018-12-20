@@ -121,9 +121,6 @@ func init() {
 	log.Level = logrus.InfoLevel
 	log.AddHook(callerHook{})
 
-	// formatter := logrus.TextFormatter{DisableTimestamp: false,
-	// 	FullTimestamp:   true,
-	// 	TimestampFormat: "2006-01-02T15:04:05.000000000Z07:00"}
 	formatter, _ := NewLayoutFormatter("[%d] [%level] [%P:%F:%M:%L] %msg\n")
 	log.Formatter = formatter
 }

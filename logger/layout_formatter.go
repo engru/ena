@@ -15,11 +15,9 @@
 package logger
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
-
 	"github.com/sirupsen/logrus"
+
+	"github.com/lsytj0413/ena/logger/convert"
 )
 
 // LayoutFormatter ...
@@ -32,44 +30,42 @@ import (
 // %F file name
 type LayoutFormatter struct {
 	pattern string
-	c       []Converter
+	c       convert.Converter
 }
 
 // NewLayoutFormatter ...
 func NewLayoutFormatter(pattern string) (*LayoutFormatter, error) {
-	f := &LayoutFormatter{
-		pattern: pattern,
-	}
-
-	tokens, err := parse(pattern)
+	builder := convert.NewBuilder()
+	converter, err := builder.Build(pattern)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, t := range tokens {
-		switch t.t {
-		case "t":
-			f.c = append(f.c, &textConverter{v: t.v})
-		case "c":
-			c, exists := defaultConverterMap[t.v]
-			if !exists {
-				return nil, fmt.Errorf("unsupported token value: %s", t.v)
-			}
-			f.c = append(f.c, c)
-		default:
-			return nil, errors.New("unsupported token type")
-		}
-	}
-
-	return f, nil
+	return &LayoutFormatter{
+		pattern: pattern,
+		c:       converter,
+	}, nil
 }
 
 // Format ...
 func (l *LayoutFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	b := bytes.Buffer{}
-	for _, c := range l.c {
-		b.WriteString(c.Convert(entry))
+	innerEntry := &convert.Entry{
+		Time:    entry.Time,
+		Message: entry.Message,
+		Level:   entry.Level.String(),
+		Package: placeHolder,
+		File:    placeHolder,
+		Method:  placeHolder,
+		Line:    placeHolder,
 	}
 
-	return b.Bytes(), nil
+	if d, ok := entry.Data[loggerCallerKeyName]; ok {
+		s := d.(*source)
+		innerEntry.Package = s.p
+		innerEntry.File = s.f
+		innerEntry.Method = s.m
+		innerEntry.Line = s.l
+	}
+
+	return []byte(l.c.Convert(innerEntry)), nil
 }

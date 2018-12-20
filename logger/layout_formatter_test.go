@@ -29,7 +29,7 @@ type layoutFormatterTestSuite struct {
 }
 
 func (s *layoutFormatterTestSuite) TestPushOk() {
-	f, err := NewLayoutFormatter("[%d] [%level] [%P-%M-%L-%F]^sfd %msg xs%%re")
+	f, err := NewLayoutFormatter("[%d] [%level] [%P:%M:%L:%F]^sfd %msg xs%%re")
 	if err != nil {
 		fmt.Println(err)
 		s.Fail("err should be nil")

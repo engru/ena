@@ -12,27 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package logger
+package convert
 
-import (
-	"fmt"
-	"testing"
+// LayoutField for layout field type and value
+type LayoutField struct {
+	Type  LayoutFieldType
+	Value string
+}
 
-	"github.com/stretchr/testify/suite"
+// LayoutFieldType for Value type
+type LayoutFieldType string
+
+const (
+	// LayoutFieldText for text layout field
+	LayoutFieldText LayoutFieldType = "text"
+	// LayoutFieldConverter for converter layout field
+	LayoutFieldConverter LayoutFieldType = "converter"
 )
-
-type parseTestSuite struct {
-	suite.Suite
-}
-
-func (s *parseTestSuite) TestPushOk() {
-	tokens, err := parse("%%123%acb%%c")
-
-	fmt.Println(tokens)
-	fmt.Println(err)
-}
-
-func TestParseTestSuite(t *testing.T) {
-	s := &parseTestSuite{}
-	suite.Run(t, s)
-}

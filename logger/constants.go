@@ -17,16 +17,7 @@ package logger
 var (
 	logrusPackageID = "github.com/sirupsen/logrus"
 
-	convertKeyDate    = "d"
-	convertKeyLevel   = "level"
-	convertKeyPackage = "P"
-	convertKeyMethod  = "M"
-	convertKeyFile    = "F"
-	convertKeyLine    = "L"
-	convertKeyMsg     = "msg"
-
-	tokenTypeConverter = "c"
-	tokenTypeToken     = "t"
-
 	loggerCallerKeyName = "ena.logger.caller"
+
+	placeHolder = "-"
 )
