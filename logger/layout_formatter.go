@@ -33,6 +33,19 @@ type LayoutFormatter struct {
 	c       convert.Converter
 }
 
+// hasCallerField chech the format pattern is have caller info
+func hasCallerField(c convert.Converter) bool {
+	fields := c.FieldConverters()
+	for _, field := range fields {
+		switch convert.FieldKey(field.Key()) {
+		case convert.FieldKeyPackage, convert.FieldKeyFile, convert.FieldKeyMethod, convert.FieldKeyLine:
+			return true
+		}
+	}
+
+	return false
+}
+
 // NewLayoutFormatter ...
 func NewLayoutFormatter(pattern string) (*LayoutFormatter, error) {
 	builder := convert.NewBuilder()

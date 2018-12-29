@@ -22,6 +22,7 @@ import (
 // Converter convert fields to string
 type Converter interface {
 	Convert(entry *Entry) string
+	FieldConverters() []FieldConverter
 }
 
 // Entry for convert input
@@ -47,6 +48,10 @@ func (c *defConverterImpl) Convert(entry *Entry) string {
 		buffer.WriteString(f.Convert(entry))
 	}
 	return buffer.String()
+}
+
+func (c *defConverterImpl) FieldConverters() []FieldConverter {
+	return c.fields
 }
 
 // NewConverter construct Converter
