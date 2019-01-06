@@ -38,6 +38,10 @@ type source struct {
 }
 
 func (callerHook) Fire(entry *logrus.Entry) error {
+	if !isCallerEnable {
+		return nil
+	}
+
 	c := &source{
 		p: "-",
 		f: "-",

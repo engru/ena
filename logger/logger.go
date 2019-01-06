@@ -116,11 +116,26 @@ func SetLogLevel(v LogLevel) {
 	}
 }
 
+// SetLogPattern set logger pattern string
+func SetLogPattern(pattern string) error {
+	formatter, err := NewLayoutFormatter(pattern)
+	if err != nil {
+		return err
+	}
+
+	isCallerEnable = hasCallerField(formatter.c)
+	log.Formatter = formatter
+	return nil
+}
+
+var (
+	isCallerEnable = true
+)
+
 func init() {
 	log.Out = os.Stdout
 	log.Level = logrus.InfoLevel
 	log.AddHook(callerHook{})
 
-	formatter, _ := NewLayoutFormatter("[%d] [%level] [%P:%F:%M:%L] %msg\n")
-	log.Formatter = formatter
+	SetLogPattern("[%d] [%level] [%P:%F:%M:%L] %msg\n")
 }
