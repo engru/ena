@@ -48,56 +48,6 @@ func Criticalf(format string, args ...interface{}) {
 	log.Fatalf(format, args...)
 }
 
-// Debug logs DEBUG level to Dest Output
-func Debug(args ...interface{}) {
-	log.Debug(args...)
-}
-
-// Info logs INFO level to Dest Output
-func Info(args ...interface{}) {
-	log.Info(args...)
-}
-
-// Warn logs WARN level to Dest Output
-func Warn(args ...interface{}) {
-	log.Warn(args...)
-}
-
-// Error logs ERROR level to Dest Output
-func Error(args ...interface{}) {
-	log.Error(args...)
-}
-
-// Critical logs Critical level to Dest Output
-func Critical(args ...interface{}) {
-	log.Fatal(args...)
-}
-
-// Debugln logs DEBUG level to Dest Output
-func Debugln(args ...interface{}) {
-	log.Debugln(args...)
-}
-
-// Infoln logs INFO level to Dest Output
-func Infoln(args ...interface{}) {
-	log.Infoln(args...)
-}
-
-// Warnln logs WARN level to Dest Output
-func Warnln(args ...interface{}) {
-	log.Warnln(args...)
-}
-
-// Errorln logs ERROR level to Dest Output
-func Errorln(args ...interface{}) {
-	log.Errorln(args...)
-}
-
-// Criticalln logs Critical level to Dest Output
-func Criticalln(args ...interface{}) {
-	log.Fatalln(args...)
-}
-
 // SetLogLevel changes logger.Level, the default logger.Level is InfoLevel
 func SetLogLevel(v LogLevel) {
 	switch v {

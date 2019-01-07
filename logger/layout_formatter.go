@@ -35,15 +35,17 @@ type LayoutFormatter struct {
 
 // hasCallerField chech the format pattern is have caller info
 func hasCallerField(c convert.Converter) bool {
-	fields := c.FieldConverters()
-	for _, field := range fields {
-		switch convert.FieldKey(field.Key()) {
-		case convert.FieldKeyPackage, convert.FieldKeyFile, convert.FieldKeyMethod, convert.FieldKeyLine:
-			return true
+	hasField := false
+	v := convert.NewFieldVisitorForFunc(func(field convert.FieldConverter) bool {
+		if field.Properties().IsCallerField {
+			hasField = true
+			return false
 		}
-	}
+		return true
+	})
+	c.Visit(v)
 
-	return false
+	return hasField
 }
 
 // NewLayoutFormatter ...

@@ -67,6 +67,7 @@ func (b *defBuilderImpl) Build(layout string) (Converter, error) {
 				}
 				fieldConverters = append(fieldConverters, converter)
 			} else {
+				// TODO: builder pattern?
 				switch field.Value {
 				case string(FieldKeyDate):
 					fieldConverters = append(fieldConverters, &dateConverter{

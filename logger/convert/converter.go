@@ -19,10 +19,31 @@ import (
 	"time"
 )
 
+// FieldVisitor for visit field converters
+type FieldVisitor interface {
+	// Visit the field converter, and return true for next, return false to stop this time visit
+	Visit(FieldConverter) bool
+}
+
+type funcFieldVisitor struct {
+	fn func(FieldConverter) bool
+}
+
+func (v *funcFieldVisitor) Visit(field FieldConverter) bool {
+	return v.fn(field)
+}
+
+// NewFieldVisitorForFunc return FieldVisitor wrap for function
+func NewFieldVisitorForFunc(fn func(FieldConverter) bool) FieldVisitor {
+	return &funcFieldVisitor{
+		fn: fn,
+	}
+}
+
 // Converter convert fields to string
 type Converter interface {
 	Convert(entry *Entry) string
-	FieldConverters() []FieldConverter
+	Visit(v FieldVisitor)
 }
 
 // Entry for convert input
@@ -50,8 +71,12 @@ func (c *defConverterImpl) Convert(entry *Entry) string {
 	return buffer.String()
 }
 
-func (c *defConverterImpl) FieldConverters() []FieldConverter {
-	return c.fields
+func (c *defConverterImpl) Visit(v FieldVisitor) {
+	for _, field := range c.fields {
+		if !v.Visit(field) {
+			return
+		}
+	}
 }
 
 // NewConverter construct Converter
