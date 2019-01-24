@@ -147,7 +147,7 @@ func genColumn(field *ast.Field) (*Column, error) {
 		var err error
 		tag, err = strconv.Unquote(field.Tag.Value)
 		if err != nil {
-			fmt.Println("unquote tag failed, %v", err)
+			fmt.Println("unquote tag failed, ", err)
 			os.Exit(1)
 		}
 		structTag, ok := reflect.StructTag(tag).Lookup("xorm")
