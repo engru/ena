@@ -18,13 +18,14 @@ import (
 	"fmt"
 )
 
+var (
+	fieldBuilders = map[string]FieldConverterBuilder{}
+)
+
 // Builder build layout strings to Converter
 type Builder interface {
 	// Build construct Converter from layout pattern string
 	Build(layout string) (Converter, error)
-
-	// AddFieldBuilder add user field converter builder, if key conflict it will overwrite old field converter builder
-	AddFieldBuilder(f FieldConverterBuilder)
 }
 
 // FieldConverterBuilder build FieldConverer
@@ -35,14 +36,11 @@ type FieldConverterBuilder interface {
 
 // defBuilderImpl implement Builder interface
 type defBuilderImpl struct {
-	fieldBuilers map[string]FieldConverterBuilder
 }
 
 // NewBuilder return Builder
 func NewBuilder() Builder {
-	return &defBuilderImpl{
-		fieldBuilers: make(map[string]FieldConverterBuilder),
-	}
+	return &defBuilderImpl{}
 }
 
 func (b *defBuilderImpl) Build(layout string) (Converter, error) {
@@ -60,7 +58,7 @@ func (b *defBuilderImpl) Build(layout string) (Converter, error) {
 			})
 		case field.Type == LayoutFieldConverter:
 			var converter FieldConverter
-			if builder, ok := b.fieldBuilers[field.Value]; ok {
+			if builder, ok := fieldBuilders[field.Value]; ok {
 				converter, err = builder.Build(field)
 				if err != nil {
 					return nil, err
@@ -97,6 +95,7 @@ func (b *defBuilderImpl) Build(layout string) (Converter, error) {
 	return NewConverter(fieldConverters), nil
 }
 
-func (b *defBuilderImpl) AddFieldBuilder(f FieldConverterBuilder) {
-	b.fieldBuilers[f.Key()] = f
+// AddFieldBuilder add user field converter builder, if key conflict it will overwrite old field converter builder
+func AddFieldBuilder(f FieldConverterBuilder) {
+	fieldBuilders[f.Key()] = f
 }

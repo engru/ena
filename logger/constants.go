@@ -15,9 +15,7 @@
 package logger
 
 var (
-	logrusPackageID = "github.com/sirupsen/logrus"
-
+	logrusPackageID     = "github.com/sirupsen/logrus"
 	loggerCallerKeyName = "ena.logger.caller"
-
-	placeHolder = "-"
+	placeHolder         = "-"
 )

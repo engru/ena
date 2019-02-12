@@ -43,10 +43,10 @@ func (callerHook) Fire(entry *logrus.Entry) error {
 	}
 
 	c := &source{
-		p: "-",
-		f: "-",
-		m: "-",
-		l: "-",
+		p: placeHolder,
+		f: placeHolder,
+		m: placeHolder,
+		l: placeHolder,
 	}
 
 	pc := make([]uintptr, 10, 10)
