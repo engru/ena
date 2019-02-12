@@ -57,38 +57,18 @@ func (b *defBuilderImpl) Build(layout string) (Converter, error) {
 				text: field.Value,
 			})
 		case field.Type == LayoutFieldConverter:
-			var converter FieldConverter
 			if builder, ok := fieldBuilders[field.Value]; ok {
+				var converter FieldConverter
 				converter, err = builder.Build(field)
 				if err != nil {
 					return nil, err
 				}
 				fieldConverters = append(fieldConverters, converter)
 			} else {
-				// TODO: builder pattern?
-				switch field.Value {
-				case string(FieldKeyDate):
-					fieldConverters = append(fieldConverters, &dateConverter{
-						timestampFormat: "2006-01-02T15:04:05.000000000Z07:00",
-					})
-				case string(FieldKeyLevel):
-					fieldConverters = append(fieldConverters, &levelConverter{})
-				case string(FieldKeyPackage):
-					fieldConverters = append(fieldConverters, &packageConverter{})
-				case string(FieldKeyFile):
-					fieldConverters = append(fieldConverters, &fileConverter{})
-				case string(FieldKeyMethod):
-					fieldConverters = append(fieldConverters, &methodConverter{})
-				case string(FieldKeyLine):
-					fieldConverters = append(fieldConverters, &lineConverter{})
-				case string(FieldKeyMessage):
-					fieldConverters = append(fieldConverters, &messageConverter{})
-				default:
-					return nil, fmt.Errorf("unsupported field key: %s", field.Value)
-				}
+				return nil, fmt.Errorf("unsupported field key: %s", field.Value)
 			}
 		default:
-			return nil, fmt.Errorf("unexpected field type %v", field.Type)
+			return nil, fmt.Errorf("unexpected field type: %v", field.Type)
 		}
 	}
 
@@ -98,4 +78,14 @@ func (b *defBuilderImpl) Build(layout string) (Converter, error) {
 // AddFieldBuilder add user field converter builder, if key conflict it will overwrite old field converter builder
 func AddFieldBuilder(f FieldConverterBuilder) {
 	fieldBuilders[f.Key()] = f
+}
+
+func init() {
+	AddFieldBuilder(&dateBuilder{})
+	AddFieldBuilder(&levelBuilder{})
+	AddFieldBuilder(&packageBuilder{})
+	AddFieldBuilder(&fileBuilder{})
+	AddFieldBuilder(&methodBuilder{})
+	AddFieldBuilder(&lineBuilder{})
+	AddFieldBuilder(&messageBuilder{})
 }

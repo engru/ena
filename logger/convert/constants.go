@@ -59,3 +59,8 @@ const (
 	// FieldKeyText for text field key
 	FieldKeyText FieldKey = "text"
 )
+
+const (
+	// the default timestamp format string
+	defaultTimestampFormat = "2006-01-02T15:04:05.000000000Z07:00"
+)
