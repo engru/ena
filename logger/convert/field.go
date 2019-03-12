@@ -14,40 +14,15 @@
 
 package convert
 
-// FieldProperties for convert field properties
-type FieldProperties struct {
-	IsCallerField bool
-}
-
 // FieldConverter convert field to string
 type FieldConverter interface {
 	Name() string
 	Key() string
 	Convert(entry *Entry) string
-	Properties() FieldProperties
-}
-
-type callerFieldProperties struct {
-}
-
-func (c *callerFieldProperties) Properties() FieldProperties {
-	return FieldProperties{
-		IsCallerField: true,
-	}
-}
-
-type nonCallerFieldProperties struct {
-}
-
-func (c *nonCallerFieldProperties) Properties() FieldProperties {
-	return FieldProperties{
-		IsCallerField: false,
-	}
 }
 
 // textConvert for const text
 type textConverter struct {
-	nonCallerFieldProperties
 	text string
 }
 
@@ -65,7 +40,6 @@ func (c *textConverter) Convert(entry *Entry) string {
 
 // dateConverter for date field
 type dateConverter struct {
-	nonCallerFieldProperties
 	timestampFormat string
 }
 
@@ -83,7 +57,6 @@ func (c *dateConverter) Convert(entry *Entry) string {
 
 // levelConverter for level field
 type levelConverter struct {
-	nonCallerFieldProperties
 }
 
 func (c *levelConverter) Name() string {
@@ -100,7 +73,6 @@ func (c *levelConverter) Convert(entry *Entry) string {
 
 // packageConverter for package field
 type packageConverter struct {
-	callerFieldProperties
 }
 
 func (c *packageConverter) Name() string {
@@ -117,7 +89,6 @@ func (c *packageConverter) Convert(entry *Entry) string {
 
 // fileConverter for file field
 type fileConverter struct {
-	callerFieldProperties
 }
 
 func (c *fileConverter) Name() string {
@@ -134,7 +105,6 @@ func (c *fileConverter) Convert(entry *Entry) string {
 
 // methodConverter for method field
 type methodConverter struct {
-	callerFieldProperties
 }
 
 func (c *methodConverter) Name() string {
@@ -151,7 +121,6 @@ func (c *methodConverter) Convert(entry *Entry) string {
 
 // lineConverter for line field
 type lineConverter struct {
-	callerFieldProperties
 }
 
 func (c *lineConverter) Name() string {
@@ -168,7 +137,6 @@ func (c *lineConverter) Convert(entry *Entry) string {
 
 // messageConverter for message field
 type messageConverter struct {
-	nonCallerFieldProperties
 }
 
 func (c *messageConverter) Name() string {

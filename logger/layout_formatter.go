@@ -37,7 +37,8 @@ type LayoutFormatter struct {
 func hasCallerField(c convert.Converter) bool {
 	hasField := false
 	v := convert.NewFieldVisitorForFunc(func(field convert.FieldConverter) bool {
-		if field.Properties().IsCallerField {
+		key := convert.FieldKey(field.Key())
+		if key == convert.FieldKeyPackage || key == convert.FieldKeyFile || key == convert.FieldKeyMethod || key == convert.FieldKeyLine {
 			hasField = true
 			return false
 		}
