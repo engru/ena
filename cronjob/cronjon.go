@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package crontab
+package cronjob
 
 import (
 	"time"
@@ -48,14 +48,17 @@ type TemplateJob struct {
 	fn   func()
 }
 
+// Name return the job name
 func (j *TemplateJob) Name() string {
 	return j.name
 }
 
+// Spec return the job spec
 func (j *TemplateJob) Spec() string {
 	return j.spec
 }
 
+// Run the job with fn
 func (j *TemplateJob) Run() {
 	if j.fn != nil {
 		j.fn()
