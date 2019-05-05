@@ -16,7 +16,7 @@ package conc
 
 import "testing"
 
-func Benchmark_Set(b *testing.B) {
+func Benchmark_Set_Parallel(b *testing.B) {
 	arr, _ := NewConcurrentArray(100)
 
 	b.RunParallel(func(p *testing.PB) {
@@ -26,14 +26,19 @@ func Benchmark_Set(b *testing.B) {
 			}
 		}
 	})
-	// for i := 0; i < b.N; i++ {
-	// 	for j := uint32(0); j < arr.Len(); j++ {
-	// 		arr.Set(j, nil)
-	// 	}
-	// }
 }
 
-func Benchmark_Get(b *testing.B) {
+func Benchmark_Set(b *testing.B) {
+	arr, _ := NewConcurrentArray(100)
+
+	for i := 0; i < b.N; i++ {
+		for j := uint32(0); j < arr.Len(); j++ {
+			arr.Set(j, nil)
+		}
+	}
+}
+
+func Benchmark_Get_Parallel(b *testing.B) {
 	arr, _ := NewConcurrentArray(100)
 
 	b.RunParallel(func(pb *testing.PB) {
@@ -43,15 +48,19 @@ func Benchmark_Get(b *testing.B) {
 			}
 		}
 	})
-
-	// for i := 0; i < b.N; i++ {
-	// 	for j := uint32(0); j < arr.Len(); j++ {
-	// 		arr.Get(j)
-	// 	}
-	// }
 }
 
-func Benchmark_SetGet(b *testing.B) {
+func Benchmark_Get(b *testing.B) {
+	arr, _ := NewConcurrentArray(100)
+
+	for i := 0; i < b.N; i++ {
+		for j := uint32(0); j < arr.Len(); j++ {
+			arr.Get(j)
+		}
+	}
+}
+
+func Benchmark_SetGet_Parallel(b *testing.B) {
 	arr, _ := NewConcurrentArray(100)
 
 	b.RunParallel(func(pb *testing.PB) {
@@ -62,10 +71,15 @@ func Benchmark_SetGet(b *testing.B) {
 			}
 		}
 	})
-	// for i := 0; i < b.N; i++ {
-	// 	for j := uint32(0); j < arr.Len(); j++ {
-	// 		arr.Set(j, nil)
-	// 		arr.Get(j)
-	// 	}
-	// }
+}
+
+func Benchmark_SetGet(b *testing.B) {
+	arr, _ := NewConcurrentArray(100)
+
+	for i := 0; i < b.N; i++ {
+		for j := uint32(0); j < arr.Len(); j++ {
+			arr.Set(j, nil)
+			arr.Get(j)
+		}
+	}
 }
