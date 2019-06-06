@@ -74,7 +74,7 @@ func (s *delayQueueTestSuite) TestOffer() {
 	}()
 
 	time.Sleep(10 * time.Millisecond)
-	s.Equal(int32(1), s.dq.sleeping)
+	s.Equal(int32(1), atomic.LoadInt32(&s.dq.sleeping))
 
 	n := defaultTimer.Now()
 	n += 1000
@@ -90,13 +90,13 @@ func (s *delayQueueTestSuite) TestOffer() {
 	s.Equal(int32(1), atomic.LoadInt32(&s.dq.sleeping))
 
 	n += 20
-	s.T().Logf("Offer first element: priority %v", n)
+	s.T().Logf("Offer second element: priority %v", n)
 	s.dq.Offer(n, n)
 	s.Equal(2, s.dq.Size())
 	s.Equal(int32(1), atomic.LoadInt32(&s.dq.sleeping))
 
 	n -= 40
-	s.T().Logf("Offer first element: priority %v", n)
+	s.T().Logf("Offer third element: priority %v", n)
 	s.dq.Offer(n, n)
 	s.Equal(3, s.dq.Size())
 	s.Equal(int32(0), atomic.LoadInt32(&s.dq.sleeping))
@@ -165,9 +165,10 @@ func (s *delayQueueTestSuite) TestPollImplAfterDelayItem() {
 	// been wakeup
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	go func() {
-		s.dq.wakeupC <- struct{}{}
-	}()
+	go func(wakeupC chan struct{}) {
+		wakeupC <- struct{}{}
+	}(s.dq.wakeupC)
+
 	s.dq.Offer(1, 0)
 	s.Equal(1, s.dq.Size())
 	r = pollImpl(ctx, s.dq)
