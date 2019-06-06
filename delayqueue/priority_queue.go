@@ -47,6 +47,11 @@ func (e *Element) Priority() int64 {
 	return e.priority
 }
 
+// Index return the element index in slice
+func (e *Element) Index() int {
+	return e.index
+}
+
 // String return the representation of element
 func (e *Element) String() string {
 	return fmt.Sprintf("*Element{Value:%v,priority:%v,index:%v,pq:%v}", e.Value, e.priority, e.index, e.pq)
