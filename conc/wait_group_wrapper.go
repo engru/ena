@@ -16,10 +16,13 @@ package conc
 
 import (
 	"sync"
+
+	"github.com/lsytj0413/ena/common"
 )
 
 // WaitGroupWrapper is a help struct for sync.WaitGroup
 type WaitGroupWrapper struct {
+	common.NoCopy
 	sync.WaitGroup
 }
 

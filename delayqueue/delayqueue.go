@@ -84,7 +84,7 @@ func NewWithTimer(size int, t Timer) DelayQueue {
 		C:       make(chan interface{}),
 		wakeupC: make(chan struct{}),
 		T:       t,
-		pq:      NewPriorityQueue(),
+		pq:      NewPriorityQueue(1),
 	}
 }
 

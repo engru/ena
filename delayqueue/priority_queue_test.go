@@ -38,7 +38,7 @@ type priorityQueueTestSuite struct {
 }
 
 func (s *priorityQueueTestSuite) SetupTest() {
-	s.pq = NewPriorityQueue().(*priorityQueue)
+	s.pq = NewPriorityQueue(0).(*priorityQueue)
 }
 
 func (s *priorityQueueTestSuite) TestAddOk() {

@@ -129,9 +129,9 @@ type priorityQueue struct {
 }
 
 // NewPriorityQueue construct a PriorityQueue
-func NewPriorityQueue() PriorityQueue {
+func NewPriorityQueue(size int) PriorityQueue {
 	pq := &priorityQueue{
-		e: make(elems, 0),
+		e: make(elems, 0, size),
 	}
 	pq.h = &heapi{
 		pq: pq,
