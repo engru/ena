@@ -88,6 +88,7 @@ func NewWithTimer(size int, t Timer) DelayQueue {
 	}
 }
 
+// TODO(yangsonglin): is't too difficult to deal with the sleeping, so change to the worker model?
 // Offer implement the DelayQueue.Offer
 func (q *delayQueue) Offer(element interface{}, expireation int64) {
 	_push := func() (*Element, int) {

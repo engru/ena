@@ -26,14 +26,17 @@ type Wait interface {
 	// Register waits returns a chan that waits on the given ID.
 	// The chan will be triggered when Trigger is called with the same ID
 	Register(id uint64) (<-chan interface{}, error)
+
 	// Trigger triggers the waiting chans with the given ID
 	Trigger(id uint64, x interface{}) error
+
+	// IsRegisterd returns where the id is been registerd
 	IsRegistered(id uint64) bool
 }
 
 type defWait struct {
-	mutex sync.RWMutex
-	m     map[uint64]chan interface{}
+	sync.RWMutex
+	m map[uint64]chan interface{}
 }
 
 const (
@@ -48,8 +51,8 @@ func New() Wait {
 }
 
 func (w *defWait) Register(id uint64) (<-chan interface{}, error) {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
+	w.Lock()
+	defer w.Unlock()
 
 	if _, ok := w.m[id]; !ok {
 		c := make(chan interface{}, 1)
@@ -62,8 +65,8 @@ func (w *defWait) Register(id uint64) (<-chan interface{}, error) {
 
 func (w *defWait) Trigger(id uint64, x interface{}) error {
 	f := func() (chan interface{}, bool) {
-		w.mutex.Lock()
-		defer w.mutex.Unlock()
+		w.Lock()
+		defer w.Unlock()
 
 		c, ok := w.m[id]
 		delete(w.m, id)
@@ -85,8 +88,8 @@ func (w *defWait) Trigger(id uint64, x interface{}) error {
 }
 
 func (w *defWait) IsRegistered(id uint64) bool {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
+	w.RLock()
+	defer w.RUnlock()
 
 	_, ok := w.m[id]
 	return ok
