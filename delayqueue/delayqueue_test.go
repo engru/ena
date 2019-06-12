@@ -82,24 +82,33 @@ func (s *delayQueueTestSuite) TestOffer() {
 	s.T().Logf("Offer first element: priority %v", n)
 	s.dq.Offer(n, n)
 	s.Equal(1, s.dq.Size())
-	// TODO(yangsonglin): difficult to test
-	s.Equal(int32(0), atomic.LoadInt32(&s.dq.sleeping))
+	// TODO(yangsonglin): difficult to test, we expect to see 0
+	v := atomic.LoadInt32(&s.dq.sleeping)
+	if v != 0 && v != 1 {
+		s.FailNow("sleeping[%v] doesn't be 0 or 1")
+	}
 
 	// wait be sleeping
 	time.Sleep(10 * time.Millisecond)
 	s.Equal(int32(1), atomic.LoadInt32(&s.dq.sleeping))
 
+	// won't been wakeup
 	n += 20
 	s.T().Logf("Offer second element: priority %v", n)
 	s.dq.Offer(n, n)
 	s.Equal(2, s.dq.Size())
 	s.Equal(int32(1), atomic.LoadInt32(&s.dq.sleeping))
 
+	// been wakeup
 	n -= 40
 	s.T().Logf("Offer third element: priority %v", n)
 	s.dq.Offer(n, n)
 	s.Equal(3, s.dq.Size())
-	s.Equal(int32(0), atomic.LoadInt32(&s.dq.sleeping))
+	// TODO(yangsonglin): difficult to test, we expect to see 0
+	v = atomic.LoadInt32(&s.dq.sleeping)
+	if v != 0 && v != 1 {
+		s.FailNow("sleeping[%v] doesn't be 0 or 1")
+	}
 
 	// wait be sleeping
 	time.Sleep(10 * time.Millisecond)
