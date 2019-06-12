@@ -20,7 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package delayqueue
+// Package priorityqueue describe an prioriry queue implement.
+package priorityqueue
 
 import (
 	"container/heap"

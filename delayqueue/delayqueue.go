@@ -28,7 +28,12 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/lsytj0413/ena/algo/queue/priorityqueue"
 )
+
+// Element of DelayQueue Item
+type Element = priorityqueue.Element
 
 // DelayQueue is an blocking queue of *Delay* elements, the element
 // can only been taken when its delay has expired. The head of the queue
@@ -64,7 +69,8 @@ type delayQueue struct {
 	T Timer
 
 	// pq is the priorityqueue of expiration
-	pq PriorityQueue
+	pq priorityqueue.PriorityQueue
+
 	// protect the add/remove/update operation in the PriorityQueue
 	// TODO(yangsonglin): implement the goroutine-safe PriorityQueue
 	mu sync.Mutex
@@ -84,7 +90,7 @@ func NewWithTimer(size int, t Timer) DelayQueue {
 		C:       make(chan interface{}),
 		wakeupC: make(chan struct{}),
 		T:       t,
-		pq:      NewPriorityQueue(1),
+		pq:      priorityqueue.NewPriorityQueue(1),
 	}
 }
 
