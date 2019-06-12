@@ -90,13 +90,14 @@ func NewWithTimer(size int, t Timer) DelayQueue {
 
 // Offer implement the DelayQueue.Offer
 func (q *delayQueue) Offer(element interface{}, expireation int64) {
-	_push := func() *Element {
+	_push := func() (*Element, int) {
 		q.mu.Lock()
 		defer q.mu.Unlock()
 
-		return q.pq.Add(element, expireation)
+		e := q.pq.Add(element, expireation)
+		return e, e.Index()
 	}
-	e := _push()
+	_, index := _push()
 
 	// there is no concurrent protection, EX:
 	// 1. goroutine1 add element with expireation 100
@@ -107,7 +108,7 @@ func (q *delayQueue) Offer(element interface{}, expireation int64) {
 	// 6. goroutine1 cas the sleeping state to 0, and send the wakeup signal
 	// 7. pool wakeup and update the fired point, cas the sleeping state to 1
 	// because the pool always update the fired point to the min expireation, so there is no problem(always update to 50)
-	if e.Index() == 0 {
+	if index == 0 {
 		// the element is the first element(with the earliest expireation), we
 		// need week up the Pool loop to update the fired point
 		if atomic.CompareAndSwapInt32(&q.sleeping, 1, 0) {

@@ -25,7 +25,6 @@ package timingwheel
 
 import (
 	"context"
-	"fmt"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -55,7 +54,10 @@ type TimingWheel interface {
 func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
 	tickMs := int64(tick / time.Millisecond)
 	if tickMs <= 0 {
-		return nil, fmt.Errorf("tick must be greator than or equal to 1ms")
+		return nil, ErrInvalidTickValue
+	}
+	if wheelSize <= 0 {
+		return nil, ErrInvalidWheelSize
 	}
 
 	startMs := timeToMs(time.Now())
@@ -67,6 +69,8 @@ func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
 	return t, nil
 }
 
+// newTimingWheel is the interval implement of creates timewheel instance.
+// it always used when add timertask into timingwheel for creates overflow timingwheel.
 func newTimingWheel(tickMs int64, wheelSize int64, startMs int64, dq delayqueue.DelayQueue) *timingWheel {
 	buckets := make([]*bucket, wheelSize)
 	for i := range buckets {
