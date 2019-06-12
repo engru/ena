@@ -27,28 +27,11 @@ import (
 	"context"
 	"sync/atomic"
 	"time"
-	"unsafe"
 
 	"github.com/lsytj0413/ena/conc"
+	"github.com/lsytj0413/ena/conc/wait"
 	"github.com/lsytj0413/ena/delayqueue"
 )
-
-// Handler for function execution
-type Handler func()
-
-// TimingWheel is an interface for implementation.
-type TimingWheel interface {
-	// Start starts the current timing wheel
-	Start()
-
-	// Stop stops the current timing wheel. If there is any timer's task being running, the stop
-	// will not wait for complete.
-	Stop()
-
-	// AfterFunc will call the Handler in its own goroutine after the duration elapse.
-	// It return an Timer that can use to cancel the Handler.
-	AfterFunc(d time.Duration, f Handler) *TimerTask
-}
 
 // NewTimingWheel creates an instance of TimingWheel with the given tick and wheelSize.
 func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
@@ -61,34 +44,64 @@ func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
 	}
 
 	startMs := timeToMs(time.Now())
-	t := newTimingWheel(tickMs, wheelSize, startMs, delayqueue.New(int(wheelSize)))
+	t := newWheel(tickMs, wheelSize, startMs)
+
+	tw := &timingWheel{
+		dq:  delayqueue.New(int(wheelSize)),
+		w:   t,
+		wt:  wait.New(),
+		wch: make(chan event, int(wheelSize)*100), // the channel is bufferd, could change to unbufferd?
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	t.ctx = ctx
-	t.cancel = cancel
-	return t, nil
+	tw.ctx = ctx
+	tw.cancel = cancel
+	return tw, nil
 }
 
-// newTimingWheel is the interval implement of creates timewheel instance.
-// it always used when add timertask into timingwheel for creates overflow timingwheel.
-func newTimingWheel(tickMs int64, wheelSize int64, startMs int64, dq delayqueue.DelayQueue) *timingWheel {
+// newWheel is the interval implement of creates time wheel instance.
+// it always used when add timertask into timing wheel for creates overflow timingwheel.
+func newWheel(tickMs int64, wheelSize int64, startMs int64) *wheel {
 	buckets := make([]*bucket, wheelSize)
 	for i := range buckets {
 		buckets[i] = newBucket()
 	}
 
-	return &timingWheel{
+	return &wheel{
 		tick:        tickMs,
 		wheelSize:   wheelSize,
 		interval:    tickMs * wheelSize,
 		currentTime: truncate(startMs, tickMs),
 		buckets:     buckets,
-		dq:          dq,
 	}
 }
 
 // timingWheel is an implemention of TimingWheel
 type timingWheel struct {
+	// the first layer wheel
+	w *wheel
+
+	// the Wait to get reponse when call AfterFunc
+	wt wait.Wait
+
+	// the Wait register id, incr
+	wid uint64
+
+	// wch is the channel which TimerTask putin when call AfterFunc
+	wch chan event
+
+	// dq is the queue of bucket expiration
+	dq delayqueue.DelayQueue
+
+	// wg for wait sub goroutine
+	wg conc.WaitGroupWrapper
+
+	// ctx to cancel sub goroutine
+	ctx    context.Context
+	cancel func()
+}
+
+type wheel struct {
 	// tick is the interval of every bucket representation in milliseconds,
 	// it the min expire unit in the timmingWheel, so it always be time.Milliseconds in the first
 	// layer timingWheel.
@@ -107,60 +120,109 @@ type timingWheel struct {
 	buckets []*bucket
 
 	// overflowWheel is the high-layer timing wheel
-	overflowWheel unsafe.Pointer
-
-	// dq is the queue of bucket expiration
-	dq delayqueue.DelayQueue
-
-	// wg for wait sub goroutine
-	wg conc.WaitGroupWrapper
-
-	// ctx to cancel sub goroutine
-	ctx    context.Context
-	cancel func()
+	overflowWheel *wheel
 }
 
-func (w *timingWheel) Start() {
-	w.wg.Wrap(func() {
-		w.dq.Poll(w.ctx)
+// eventType is the representation of event, such as AddNew, RePost
+type eventType = string
+
+// eventAddNew is the identify when timertask is add from AfterFunc
+var eventAddNew eventType = "AddNew"
+
+// eventDelete is the identify
+var eventDelete eventType = "Delete"
+
+// event is the representation of value in the wch
+type event struct {
+	// the identify of the event
+	Type eventType
+
+	t *TimerTask
+}
+
+func (tw *timingWheel) Start() {
+	tw.wg.Wrap(func() {
+		tw.dq.Poll(tw.ctx)
 	})
 
-	w.wg.Wrap(func() {
+	addOrRun := func(t *TimerTask) {
+		tw.w.addOrRun(t, tw.dq)
+	}
+
+	tw.wg.Wrap(func() {
 		for {
 			select {
-			case elem := <-w.dq.Chan():
+			case elem := <-tw.dq.Chan():
 				b := elem.(*bucket)
-				w.advanceClock(b.Expiration())
-				b.Flush(w.addOrRun)
-			case <-w.ctx.Done():
+				tw.w.advanceClock(b.Expiration())
+
+				// TODO(lsytj0413): race condition here?
+				b.Flush(addOrRun)
+			case e := <-tw.wch:
+				switch e.Type {
+				case eventAddNew:
+					// an timer task is add from AfterFunc
+					addOrRun(e.t)
+					tw.wt.Trigger(e.t.id, e.t)
+				case eventDelete:
+					stopped := false
+					for b := e.t.bucket(); b != nil; b = e.t.bucket() {
+						stopped = b.remove(e.t)
+					}
+					tw.wt.Trigger(e.t.id, stopped)
+				}
+			case <-tw.ctx.Done():
 				return
 			}
 		}
 	})
 }
 
-func (w *timingWheel) Stop() {
-	w.cancel()
-	w.wg.Wait()
+func (tw *timingWheel) Stop() {
+	tw.cancel()
+	tw.wg.Wait()
 }
 
-func (w *timingWheel) AfterFunc(d time.Duration, f Handler) *TimerTask {
+func (tw *timingWheel) AfterFunc(d time.Duration, f Handler) *TimerTask {
+	wid := atomic.AddUint64(&tw.wid, 1)
+
 	t := &TimerTask{
 		expiration: timeToMs(time.Now().Add(d)),
 		f:          f,
+		id:         wid,
+		w:          tw,
 	}
-	w.addOrRun(t)
-	return t
+
+	// TODO(lsytj0413): deal the err
+	outch, _ := tw.wt.Register(wid)
+	tw.wch <- event{
+		Type: eventAddNew,
+		t:    t,
+	}
+
+	v := <-outch
+	return v.(*TimerTask)
 }
 
-func (w *timingWheel) addOrRun(t *TimerTask) {
-	if !w.add(t) {
+func (tw *timingWheel) StopFunc(t *TimerTask) bool {
+	outch, _ := tw.wt.Register(t.id)
+	tw.wch <- event{
+		Type: eventDelete,
+		t:    t,
+	}
+
+	v := <-outch
+	return v.(bool)
+}
+
+func (w *wheel) addOrRun(t *TimerTask, dq delayqueue.DelayQueue) {
+	if !w.add(t, dq) {
 		// the timertask already expired, wo we run execute the timer's taks in its own goroutine.
 		go t.f()
 	}
 }
 
-func (w *timingWheel) add(t *TimerTask) bool {
+func (w *wheel) add(t *TimerTask, dq delayqueue.DelayQueue) bool {
 	switch {
 	case t.expiration < w.currentTime+w.tick:
 		// if the timertask is in the first bucket, we treat it as expired.
@@ -181,35 +243,23 @@ func (w *timingWheel) add(t *TimerTask) bool {
 		if b.SetExpiration(vid * w.tick) {
 			// the bucket expiration has been changed, we enqueue it into the delayqueue
 			// EX: the wheel has been advanced, and the bucket is reused after flush
-			w.dq.Offer(b, b.Expiration())
+			dq.Offer(b, b.Expiration())
 		}
 		return true
 	default:
-		overflowWheel := atomic.LoadPointer(&w.overflowWheel)
-		if overflowWheel == nil {
-			atomic.CompareAndSwapPointer(
-				&w.overflowWheel,
-				nil,
-				unsafe.Pointer(newTimingWheel(
-					w.interval,
-					w.wheelSize,
-					w.currentTime,
-					w.dq,
-				)),
-			)
-			overflowWheel = atomic.LoadPointer(&w.overflowWheel)
+		if w.overflowWheel == nil {
+			w.overflowWheel = newWheel(w.interval, w.wheelSize, w.currentTime)
 		}
-		return (*timingWheel)(overflowWheel).add(t)
+		return w.overflowWheel.add(t, dq)
 	}
 }
 
-func (w *timingWheel) advanceClock(expiration int64) {
+func (w *wheel) advanceClock(expiration int64) {
 	if expiration >= w.currentTime+w.tick {
 		w.currentTime = truncate(expiration, w.tick)
 
-		overflowWheel := atomic.LoadPointer(&w.overflowWheel)
-		if overflowWheel != nil {
-			(*timingWheel)(overflowWheel).advanceClock(w.currentTime)
+		if w.overflowWheel != nil {
+			w.overflowWheel.advanceClock(w.currentTime)
 		}
 	}
 }

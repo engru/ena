@@ -22,63 +22,22 @@
 
 package timingwheel
 
-import (
-	"container/list"
-	"sync/atomic"
-)
+import "time"
 
-// buchet is list of timer
-type bucket struct {
-	// the container list of timer
-	timers *list.List
+// Handler for function execution
+type Handler func()
 
-	// expiration is the expire of bucket
-	expiration int64
-}
+// TimingWheel is an interface for implementation.
+type TimingWheel interface {
+	// Start starts the current timing wheel
+	Start()
 
-func newBucket() *bucket {
-	return &bucket{
-		timers:     list.New(),
-		expiration: -1,
-	}
-}
+	// Stop stops the current timing wheel. If there is any timer's task being running, the stop
+	// will not wait for complete.
+	// TODO(lsytj0413): should pass ctx from Start?
+	Stop()
 
-func (b *bucket) Expiration() int64 {
-	return atomic.LoadInt64(&b.expiration)
-}
-
-func (b *bucket) SetExpiration(v int64) bool {
-	return atomic.SwapInt64(&b.expiration, v) != v
-}
-
-func (b *bucket) Add(t *TimerTask) {
-	e := b.timers.PushBack(t)
-	t.setBucket(b)
-	t.e = e
-}
-
-func (b *bucket) remove(t *TimerTask) bool {
-	if t.bucket() != b {
-		return false
-	}
-
-	b.timers.Remove(t.e)
-	t.setBucket(nil)
-	t.e = nil
-	return true
-}
-
-// Flush will called by bucket expire exceed, and in the reinsert function,
-// the TimerTask will reinsert into the timingwheel.
-func (b *bucket) Flush(reinsert func(*TimerTask)) {
-	e := b.timers.Front()
-	for e != nil {
-		n := e.Next()
-		t := e.Value.(*TimerTask)
-		b.remove(t)
-		reinsert(t)
-		e = n
-	}
-
-	b.SetExpiration(-1)
+	// AfterFunc will call the Handler in its own goroutine after the duration elapse.
+	// It return an Timer that can use to cancel the Handler.
+	AfterFunc(d time.Duration, f Handler) *TimerTask
 }

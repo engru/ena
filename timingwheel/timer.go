@@ -24,8 +24,6 @@ package timingwheel
 
 import (
 	"container/list"
-	"sync/atomic"
-	"unsafe"
 )
 
 // TimerTask represent single task. When expires, the given
@@ -34,30 +32,30 @@ type TimerTask struct {
 	// expiration of the task
 	expiration int64
 
+	// the id of timertask, unique
+	id uint64
+
 	// task handler
 	f Handler
 
 	// the bucket pointer that holds the TimerTask list
-	b unsafe.Pointer
+	b *bucket
+	w *timingWheel
 
 	e *list.Element
 }
 
 func (t *TimerTask) bucket() *bucket {
-	return (*bucket)(atomic.LoadPointer(&t.b))
+	return t.b
 }
 
 func (t *TimerTask) setBucket(b *bucket) bool {
-	old := atomic.LoadPointer(&t.b)
-	return atomic.CompareAndSwapPointer(&t.b, old, unsafe.Pointer(b))
+	t.b = b
+	return true
 }
 
 // Stop the timer task from fire, return true if the timer is stopped success,
 // or false if the timer has already expired or been stopped.
 func (t *TimerTask) Stop() bool {
-	stopped := false
-	for b := t.bucket(); b != nil; b = t.bucket() {
-		stopped = b.Remove(t)
-	}
-	return stopped
+	return t.w.StopFunc(t)
 }
