@@ -161,7 +161,7 @@ func (tw *timingWheel) Start() {
 			case e := <-tw.wch:
 				switch e.Type {
 				case eventAddNew:
-					// an timer task is add from AfterFunc
+					// an timer task is add from AfterFunc/StopFunc
 					addOrRun(e.t)
 					tw.wt.Trigger(e.t.id, e.t)
 				case eventDelete:
@@ -217,7 +217,7 @@ func (tw *timingWheel) StopFunc(t *TimerTask) bool {
 
 func (w *wheel) addOrRun(t *TimerTask, dq delayqueue.DelayQueue) {
 	if !w.add(t, dq) {
-		// the timertask already expired, wo we run execute the timer's taks in its own goroutine.
+		// the timertask already expired, wo we run execute the timer's task in its own goroutine.
 		go t.f()
 	}
 }
