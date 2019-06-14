@@ -31,3 +31,12 @@ var (
 	// ErrInvalidWheelSize is representation error of invalid wheel size value
 	ErrInvalidWheelSize = fmt.Errorf("wheel size must greater than zero")
 )
+
+// eventType is the representation of event, such as AddNew, RePost
+type eventType = string
+
+// eventAddNew is the identify when timertask is add from AfterFunc
+var eventAddNew eventType = "AddNew"
+
+// eventDelete is the identify
+var eventDelete eventType = "Delete"

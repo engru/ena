@@ -24,11 +24,15 @@ package timingwheel
 
 import (
 	"container/list"
+	"sync/atomic"
+	"time"
 )
 
-// TimerTask represent single task. When expires, the given
+// timerTask represent single task. When expires, the given
 // task will been executed.
-type TimerTask struct {
+type timerTask struct {
+	// d is the duration of timertask
+	d time.Duration
 	// expiration of the task
 	expiration int64
 
@@ -38,6 +42,11 @@ type TimerTask struct {
 	// task handler
 	f Handler
 
+	// sign of whether the timertask has stopped,
+	// 1: stopped
+	// 0: non stopped
+	stopped uint32
+
 	// the bucket pointer that holds the TimerTask list
 	b *bucket
 	w *timingWheel
@@ -45,17 +54,21 @@ type TimerTask struct {
 	e *list.Element
 }
 
-func (t *TimerTask) bucket() *bucket {
+func (t *timerTask) bucket() *bucket {
 	return t.b
 }
 
-func (t *TimerTask) setBucket(b *bucket) bool {
+func (t *timerTask) setBucket(b *bucket) bool {
 	t.b = b
 	return true
 }
 
 // Stop the timer task from fire, return true if the timer is stopped success,
 // or false if the timer has already expired or been stopped.
-func (t *TimerTask) Stop() bool {
-	return t.w.StopFunc(t)
+func (t *timerTask) Stop() bool {
+	if atomic.LoadUint32(&t.stopped) == 1 {
+		return true
+	}
+
+	return t.w.StopFunc(t) || atomic.LoadUint32(&t.stopped) == 1
 }

@@ -51,13 +51,13 @@ func (b *bucket) SetExpiration(v int64) bool {
 	return atomic.SwapInt64(&b.expiration, v) != v
 }
 
-func (b *bucket) Add(t *TimerTask) {
+func (b *bucket) Add(t *timerTask) {
 	e := b.timers.PushBack(t)
 	t.setBucket(b)
 	t.e = e
 }
 
-func (b *bucket) remove(t *TimerTask) bool {
+func (b *bucket) remove(t *timerTask) bool {
 	if t.bucket() != b {
 		return false
 	}
@@ -70,11 +70,11 @@ func (b *bucket) remove(t *TimerTask) bool {
 
 // Flush will called by bucket expire exceed, and in the reinsert function,
 // the TimerTask will reinsert into the timingwheel.
-func (b *bucket) Flush(reinsert func(*TimerTask)) {
+func (b *bucket) Flush(reinsert func(*timerTask)) {
 	e := b.timers.Front()
 	for e != nil {
 		n := e.Next()
-		t := e.Value.(*TimerTask)
+		t := e.Value.(*timerTask)
 		b.remove(t)
 		reinsert(t)
 		e = n
