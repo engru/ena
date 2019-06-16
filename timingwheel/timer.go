@@ -40,6 +40,9 @@ type timerTask struct {
 	d time.Duration
 	// expiration of the task
 	expiration int64
+	// the timer type, when the type is Tick, the timer will reinsert into the
+	// wheel after fired.
+	t timerTaskType
 
 	// the id of timertask, unique
 	id uint64
@@ -57,15 +60,6 @@ type timerTask struct {
 	w stopWheel
 
 	e *list.Element
-}
-
-func (t *timerTask) bucket() *bucket {
-	return t.b
-}
-
-func (t *timerTask) setBucket(b *bucket) bool {
-	t.b = b
-	return true
 }
 
 // Stop the timer task from fire, return true if the timer is stopped success,

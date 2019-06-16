@@ -30,6 +30,9 @@ var (
 
 	// ErrInvalidWheelSize is representation error of invalid wheel size value
 	ErrInvalidWheelSize = fmt.Errorf("wheel size must greater than zero")
+
+	// ErrInvalidTickFuncDurationValue is representation error of invalid tickfunc duration
+	ErrInvalidTickFuncDurationValue = fmt.Errorf("tickfunc duration must greater than or equal to timingwheel tick")
 )
 
 // eventType is the representation of event, such as AddNew, RePost
@@ -38,5 +41,14 @@ type eventType = string
 // eventAddNew is the identify when timertask is add from AfterFunc
 var eventAddNew eventType = "AddNew"
 
-// eventDelete is the identify
+// eventDelete is the identify when timertask.Stop is called
 var eventDelete eventType = "Delete"
+
+// timerTaskType is the representation of timertask
+type timerTaskType = string
+
+// taskAfter is the identify when the timertask is disposable
+var taskAfter timerTaskType = "After"
+
+// taskTick is the identify when the timertask is repetitious
+var taskTick timerTaskType = "Tick"

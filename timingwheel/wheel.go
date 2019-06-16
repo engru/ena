@@ -22,7 +22,11 @@
 
 package timingwheel
 
-import "github.com/lsytj0413/ena/delayqueue"
+import (
+	"time"
+
+	"github.com/lsytj0413/ena/delayqueue"
+)
 
 // newWheel is the interval implement of creates time wheel instance.
 // it always used when add timertask into timing wheel for creates overflow timingwheel.
@@ -65,8 +69,16 @@ type wheel struct {
 
 func (w *wheel) addOrRun(t *timerTask, dq delayqueue.DelayQueue) {
 	if !w.add(t, dq) {
+		now := time.Now()
+
 		// the timertask already expired, wo we run execute the timer's task in its own goroutine.
-		go t.f()
+		go t.f(now)
+
+		if t.t == taskTick && t.stopped == 0 {
+			// the timertask is tick func, and haven't been stopped, reinsert it
+			t.expiration = timeToMs(now.Add(t.d))
+			w.addOrRun(t, dq)
+		}
 	}
 }
 

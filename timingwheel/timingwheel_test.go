@@ -24,8 +24,10 @@ package timingwheel
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/stretchr/testify/suite"
 
@@ -146,12 +148,12 @@ func (s *timingWheelTestSuite) TestAfterFunc() {
 
 	wg.Wrap(func() {
 		for _, tc := range testCases {
-			s.tw.AfterFunc(tc.d, func(tc testCase) func() {
-				return func() {
+			s.tw.AfterFunc(tc.d, func(tc testCase) func(time.Time) {
+				return func(ct time.Time) {
 					defer func() {
 						ch <- struct{}{}
 					}()
-					n := timeToMs(time.Now())
+					n := timeToMs(ct)
 					expect := now + int64(tc.d/time.Millisecond)
 					s.T().Logf("receive: %s", tc.description)
 					if n < expect || n > expect+10 {
@@ -169,6 +171,94 @@ func (s *timingWheelTestSuite) TestAfterFunc() {
 	})
 
 	wg.Wait()
+}
+
+// TODO(lsytj0413): difficult to test, the handler maybe run disorder
+func (s *timingWheelTestSuite) TestTickFunc() {
+	type testCase struct {
+		description string
+		d           time.Duration
+		last        unsafe.Pointer
+		skip        int32
+		t           TimerTask
+	}
+	testCases := []*testCase{
+		{
+			description: "2 ms",
+			d:           2 * time.Millisecond,
+		},
+		{
+			description: "10 ms",
+			d:           10 * time.Millisecond,
+		},
+		{
+			description: "300 ms",
+			d:           300 * time.Millisecond,
+		},
+		{
+			description: "1 s",
+			d:           time.Second,
+		},
+		{
+			description: "1.5 s",
+			d:           time.Second + 500*time.Millisecond,
+		},
+		{
+			description: "3 s",
+			d:           3 * time.Second,
+		},
+	}
+
+	var wg conc.WaitGroupWrapper
+	timeout := time.Second * 4
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	wg.Wrap(func() {
+		for _, tc := range testCases {
+			now := time.Now()
+			atomic.StorePointer(&tc.last, unsafe.Pointer(&now))
+			t, err := s.tw.TickFunc(tc.d, func(tc *testCase) func(time.Time) {
+				return func(ct time.Time) {
+					now, lastptr := ct, (atomic.LoadPointer(&tc.last))
+					last := *((*time.Time)(lastptr))
+					expect := last.Add(tc.d)
+
+					if now.Before(last) {
+						// the next handler has been called, skip this
+						atomic.AddInt32(&tc.skip, 1)
+						return
+					}
+
+					atomic.CompareAndSwapPointer(&tc.last, lastptr, unsafe.Pointer(&ct))
+					if expect.After(now.Add(2*time.Millisecond)) || now.After(expect.Add(10*time.Millisecond)) {
+						s.T().Fatalf("receive %s: expect[%v], got[%v], last[%v]", tc.description, expect, now, last)
+					}
+				}
+			}(tc))
+			s.NoError(err)
+			tc.t = t
+		}
+	})
+
+	s.tw.Start()
+
+	<-ctx.Done()
+	for _, tc := range testCases {
+		tc.t.Stop()
+	}
+	s.tw.Stop()
+
+	wg.Wait()
+	// TODO(yangsonglin): wait the handler goroutine finished
+	time.Sleep(4 * time.Second)
+
+	for _, tc := range testCases {
+		v := atomic.LoadInt32(&tc.skip)
+		if v > 0 {
+			s.T().Logf("%v: skip times[%v]", tc.description, v)
+		}
+	}
 }
 
 func TestTimingWheelTestSuite(t *testing.T) {

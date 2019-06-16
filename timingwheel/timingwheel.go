@@ -60,6 +60,7 @@ func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
 }
 
 // timingWheel is an implemention of TimingWheel
+// TODO(lsytj0413): disable add/tick/stopfunc when not running
 type timingWheel struct {
 	// the first layer wheel
 	w *wheel
@@ -118,8 +119,8 @@ func (tw *timingWheel) Start() {
 					tw.wt.Trigger(e.t.id, e.t)
 				case eventDelete:
 					stopped := false
-					for b := e.t.bucket(); b != nil; b = e.t.bucket() {
-						stopped = b.remove(e.t)
+					if e.t.b != nil {
+						stopped = e.t.b.remove(e.t)
 					}
 					if stopped {
 						e.t.stopped = 1
@@ -133,51 +134,73 @@ func (tw *timingWheel) Start() {
 	})
 }
 
+// TODO(lsytj0413): clear all timer after stop
 func (tw *timingWheel) Stop() {
 	tw.cancel()
 	tw.wg.Wait()
 }
 
 func (tw *timingWheel) AfterFunc(d time.Duration, f Handler) (TimerTask, error) {
-	wid := atomic.AddUint64(&tw.wid, 1)
+	return tw.addFunc(d, f, taskAfter)
+}
 
+func (tw *timingWheel) TickFunc(d time.Duration, f Handler) (TimerTask, error) {
+	v := d / tw.Tick()
+	if v <= 0 {
+		return nil, ErrInvalidTickFuncDurationValue
+	}
+
+	return tw.addFunc(d, f, taskTick)
+}
+
+func (tw *timingWheel) Tick() time.Duration {
+	return time.Duration(tw.w.tick) * time.Millisecond
+}
+
+// TODO(lsytj0413): implement it
+func (tw *timingWheel) Size() int {
+	return 0
+}
+
+func (tw *timingWheel) StopFunc(t *timerTask) (bool, error) {
+	outch, err := tw.enquenTask(t, eventDelete)
+	if err != nil {
+		return false, err
+	}
+
+	v := <-outch
+	return v.(bool), nil
+}
+
+func (tw *timingWheel) addFunc(d time.Duration, f Handler, eType timerTaskType) (TimerTask, error) {
 	t := &timerTask{
+		d:          d,
 		expiration: timeToMs(time.Now().Add(d)),
+		t:          eType,
 		f:          f,
-		id:         wid,
+		id:         atomic.AddUint64(&tw.wid, 1),
 		w:          tw,
 	}
 
-	// TODO(lsytj0413): deal the err
-	outch, err := tw.wt.Register(wid)
+	outch, err := tw.enquenTask(t, eventAddNew)
 	if err != nil {
 		return nil, err
-	}
-	tw.wch <- event{
-		Type: eventAddNew,
-		t:    t,
 	}
 
 	v := <-outch
 	return v.(*timerTask), nil
 }
 
-// TODO(lsytj0413): implement it
-func (tw *timingWheel) TickFunc(d time.Duration, f Handler) (TimerTask, error) {
-	return nil, nil
-}
-
-func (tw *timingWheel) StopFunc(t *timerTask) (bool, error) {
+func (tw *timingWheel) enquenTask(t *timerTask, eType eventType) (<-chan interface{}, error) {
 	outch, err := tw.wt.Register(t.id)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	tw.wch <- event{
-		Type: eventDelete,
+		Type: eType,
 		t:    t,
 	}
 
-	v := <-outch
-	return v.(bool), nil
+	return outch, nil
 }

@@ -53,18 +53,16 @@ func (b *bucket) SetExpiration(v int64) bool {
 
 func (b *bucket) Add(t *timerTask) {
 	e := b.timers.PushBack(t)
-	t.setBucket(b)
-	t.e = e
+	t.b, t.e = b, e
 }
 
 func (b *bucket) remove(t *timerTask) bool {
-	if t.bucket() != b {
+	if t.b != b {
 		return false
 	}
 
 	b.timers.Remove(t.e)
-	t.setBucket(nil)
-	t.e = nil
+	t.b, t.e = nil, nil
 	return true
 }
 

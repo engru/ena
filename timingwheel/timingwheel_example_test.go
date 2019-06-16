@@ -21,38 +21,3 @@
 // SOFTWARE.
 
 package timingwheel
-
-import "time"
-
-// Handler for function execution
-type Handler func(time.Time)
-
-// TimingWheel is an interface for implementation.
-type TimingWheel interface {
-	// Start starts the current timing wheel
-	Start()
-
-	// Stop stops the current timing wheel. If there is any timer's task being running, the stop
-	// will not wait for complete.
-	// TODO(lsytj0413): should pass ctx from Start?
-	Stop()
-
-	// AfterFunc will call the Handler in its own goroutine after the duration elapse.
-	// It return an Timer that can use to cancel the Handler.
-	AfterFunc(d time.Duration, f Handler) (TimerTask, error)
-
-	// TickFunc will call the Handler in its own goroutine after the duration elapse tick.
-	// It reutrn an Timer that can use to cancel the Handler.
-	TickFunc(d time.Duration, f Handler) (TimerTask, error)
-
-	// Tick return the Tick of bucket
-	Tick() time.Duration
-
-	// Size return the task size
-	Size() int
-}
-
-// TimerTask is an interface for task implementation.
-type TimerTask interface {
-	Stop() (bool, error)
-}

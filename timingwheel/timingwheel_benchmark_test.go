@@ -49,7 +49,7 @@ func Benchmark_TimingWheel(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tw.AfterFunc(
 			time.Duration(rand.Intn(300))*time.Millisecond,
-			func() {},
+			func(time.Time) {},
 		)
 	}
 
@@ -77,7 +77,7 @@ func Benchmark_TimingWheel_Parallel(b *testing.B) {
 		for p.Next() {
 			tw.AfterFunc(
 				time.Duration(rand.Intn(300))*time.Millisecond,
-				func() {},
+				func(time.Time) {},
 			)
 		}
 	})
