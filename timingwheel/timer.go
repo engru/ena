@@ -28,6 +28,11 @@ import (
 	"time"
 )
 
+// stopWheel is wrap for timingWheel.StopFunc, testable
+type stopWheel interface {
+	StopFunc(t *timerTask) (bool, error)
+}
+
 // timerTask represent single task. When expires, the given
 // task will been executed.
 type timerTask struct {
@@ -49,7 +54,7 @@ type timerTask struct {
 
 	// the bucket pointer that holds the TimerTask list
 	b *bucket
-	w *timingWheel
+	w stopWheel
 
 	e *list.Element
 }
