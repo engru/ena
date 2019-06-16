@@ -39,14 +39,14 @@ type TimingWheel interface {
 
 	// AfterFunc will call the Handler in its own goroutine after the duration elapse.
 	// It return an Timer that can use to cancel the Handler.
-	AfterFunc(d time.Duration, f Handler) TimerTask
+	AfterFunc(d time.Duration, f Handler) (TimerTask, error)
 
 	// TickFunc will call the Handler in its own goroutine after the duration elapse tick.
 	// It reutrn an Timer that can use to cancel the Handler.
-	TickFunc(d time.Duration, f Handler) TimerTask
+	TickFunc(d time.Duration, f Handler) (TimerTask, error)
 }
 
 // TimerTask is an interface for task implementation.
 type TimerTask interface {
-	Stop() bool
+	Stop() (bool, error)
 }

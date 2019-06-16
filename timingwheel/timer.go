@@ -65,10 +65,15 @@ func (t *timerTask) setBucket(b *bucket) bool {
 
 // Stop the timer task from fire, return true if the timer is stopped success,
 // or false if the timer has already expired or been stopped.
-func (t *timerTask) Stop() bool {
+func (t *timerTask) Stop() (bool, error) {
 	if atomic.LoadUint32(&t.stopped) == 1 {
-		return true
+		return true, nil
 	}
 
-	return t.w.StopFunc(t) || atomic.LoadUint32(&t.stopped) == 1
+	stopped, err := t.w.StopFunc(t)
+	if err != nil {
+		return false, err
+	}
+
+	return stopped || atomic.LoadUint32(&t.stopped) == 1, nil
 }

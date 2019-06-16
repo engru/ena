@@ -121,6 +121,9 @@ func (tw *timingWheel) Start() {
 					for b := e.t.bucket(); b != nil; b = e.t.bucket() {
 						stopped = b.remove(e.t)
 					}
+					if stopped {
+						e.t.stopped = 1
+					}
 					tw.wt.Trigger(e.t.id, stopped)
 				}
 			case <-tw.ctx.Done():
@@ -135,7 +138,7 @@ func (tw *timingWheel) Stop() {
 	tw.wg.Wait()
 }
 
-func (tw *timingWheel) AfterFunc(d time.Duration, f Handler) TimerTask {
+func (tw *timingWheel) AfterFunc(d time.Duration, f Handler) (TimerTask, error) {
 	wid := atomic.AddUint64(&tw.wid, 1)
 
 	t := &timerTask{
@@ -146,28 +149,35 @@ func (tw *timingWheel) AfterFunc(d time.Duration, f Handler) TimerTask {
 	}
 
 	// TODO(lsytj0413): deal the err
-	outch, _ := tw.wt.Register(wid)
+	outch, err := tw.wt.Register(wid)
+	if err != nil {
+		return nil, err
+	}
 	tw.wch <- event{
 		Type: eventAddNew,
 		t:    t,
 	}
 
 	v := <-outch
-	return v.(*timerTask)
+	return v.(*timerTask), nil
 }
 
 // TODO(lsytj0413): implement it
-func (tw *timingWheel) TickFunc(d time.Duration, f Handler) TimerTask {
-	return nil
+func (tw *timingWheel) TickFunc(d time.Duration, f Handler) (TimerTask, error) {
+	return nil, nil
 }
 
-func (tw *timingWheel) StopFunc(t *timerTask) bool {
-	outch, _ := tw.wt.Register(t.id)
+func (tw *timingWheel) StopFunc(t *timerTask) (bool, error) {
+	outch, err := tw.wt.Register(t.id)
+	if err != nil {
+		return false, err
+	}
+
 	tw.wch <- event{
 		Type: eventDelete,
 		t:    t,
 	}
 
 	v := <-outch
-	return v.(bool)
+	return v.(bool), nil
 }
