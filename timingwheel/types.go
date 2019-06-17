@@ -44,15 +44,11 @@ type TimingWheel interface {
 	// TickFunc will call the Handler in its own goroutine after the duration elapse tick.
 	// It reutrn an Timer that can use to cancel the Handler.
 	TickFunc(d time.Duration, f Handler) (TimerTask, error)
-
-	// Tick return the Tick of bucket
-	Tick() time.Duration
-
-	// Size return the task size
-	Size() int
 }
 
 // TimerTask is an interface for task implementation.
 type TimerTask interface {
+	// Stop the timertask, the Handler will not be execute after this.
+	// NOTE: there is not promise the pre Hander call will been executed before stop.
 	Stop() (bool, error)
 }

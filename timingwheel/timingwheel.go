@@ -53,14 +53,12 @@ func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
 		wch: make(chan event, int(wheelSize)*100), // the channel is bufferd, could change to unbufferd?
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	tw.ctx = ctx
-	tw.cancel = cancel
+	tw.ctx, tw.cancel = context.WithCancel(context.Background())
 	return tw, nil
 }
 
 // timingWheel is an implemention of TimingWheel
-// TODO(lsytj0413): disable add/tick/stopfunc when not running
+// TODO(lsytj0413): disable add/tick/stopfunc when not running?
 type timingWheel struct {
 	// the first layer wheel
 	w *wheel
@@ -119,11 +117,16 @@ func (tw *timingWheel) Start() {
 					tw.wt.Trigger(e.t.id, e.t)
 				case eventDelete:
 					stopped := false
-					if e.t.b != nil {
-						stopped = e.t.b.remove(e.t)
-					}
-					if stopped {
-						e.t.stopped = 1
+					switch atomic.LoadUint32(&e.t.stopped) {
+					case 1:
+						stopped = true
+					default:
+						if e.t.b != nil {
+							stopped = e.t.b.remove(e.t)
+						}
+						if stopped {
+							atomic.StoreUint32(&e.t.stopped, 1)
+						}
 					}
 					tw.wt.Trigger(e.t.id, stopped)
 				}
@@ -145,21 +148,12 @@ func (tw *timingWheel) AfterFunc(d time.Duration, f Handler) (TimerTask, error) 
 }
 
 func (tw *timingWheel) TickFunc(d time.Duration, f Handler) (TimerTask, error) {
-	v := d / tw.Tick()
+	v := d / (time.Duration(tw.w.tick) * time.Millisecond)
 	if v <= 0 {
 		return nil, ErrInvalidTickFuncDurationValue
 	}
 
 	return tw.addFunc(d, f, taskTick)
-}
-
-func (tw *timingWheel) Tick() time.Duration {
-	return time.Duration(tw.w.tick) * time.Millisecond
-}
-
-// TODO(lsytj0413): implement it
-func (tw *timingWheel) Size() int {
-	return 0
 }
 
 func (tw *timingWheel) StopFunc(t *timerTask) (bool, error) {

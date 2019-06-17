@@ -31,7 +31,7 @@ import (
 	"github.com/lsytj0413/ena/conc"
 )
 
-func Benchmark_TimingWheel(b *testing.B) {
+func Benchmark_TimingWheel_AfterFunc(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
 	tw, err := NewTimingWheel(time.Millisecond, 20)
@@ -49,6 +49,124 @@ func Benchmark_TimingWheel(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tw.AfterFunc(
 			time.Duration(rand.Intn(300))*time.Millisecond,
+			func(time.Time) {},
+		)
+	}
+
+	cancel()
+	wg.Wait()
+}
+
+func Benchmark_TimingWheel_AfterFunc_Parallel(b *testing.B) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg conc.WaitGroupWrapper
+	tw, err := NewTimingWheel(time.Millisecond, 20)
+	if err != nil {
+		b.FailNow()
+	}
+	tw.Start()
+
+	wg.Wrap(func() {
+		<-ctx.Done()
+		tw.Stop()
+	})
+
+	rand.Seed(time.Now().UnixNano())
+
+	b.RunParallel(func(p *testing.PB) {
+		for p.Next() {
+			tw.AfterFunc(
+				time.Duration(rand.Intn(300))*time.Millisecond,
+				func(time.Time) {},
+			)
+		}
+	})
+
+	cancel()
+	wg.Wait()
+}
+
+func Benchmark_TimingWheel_TickFunc(b *testing.B) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg conc.WaitGroupWrapper
+	tw, err := NewTimingWheel(time.Millisecond, 20)
+	if err != nil {
+		b.FailNow()
+	}
+	tw.Start()
+
+	wg.Wrap(func() {
+		<-ctx.Done()
+		tw.Stop()
+	})
+
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < b.N; i++ {
+		t, _ := tw.TickFunc(
+			time.Duration(rand.Intn(300)+1)*time.Millisecond,
+			func(time.Time) {},
+		)
+		t.Stop()
+	}
+
+	cancel()
+	wg.Wait()
+}
+
+func Benchmark_TimingWheel_TickFunc_Parallel(b *testing.B) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg conc.WaitGroupWrapper
+	tw, err := NewTimingWheel(time.Millisecond, 20)
+	if err != nil {
+		b.FailNow()
+	}
+	tw.Start()
+
+	wg.Wrap(func() {
+		<-ctx.Done()
+		tw.Stop()
+	})
+
+	rand.Seed(time.Now().UnixNano())
+
+	b.RunParallel(func(p *testing.PB) {
+		for p.Next() {
+			t, _ := tw.TickFunc(
+				time.Duration(rand.Intn(300)+1)*time.Millisecond,
+				func(time.Time) {},
+			)
+			t.Stop()
+		}
+	})
+
+	cancel()
+	wg.Wait()
+}
+
+func Benchmark_TimingWheel(b *testing.B) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg conc.WaitGroupWrapper
+	tw, err := NewTimingWheel(time.Millisecond, 20)
+	if err != nil {
+		b.FailNow()
+	}
+	tw.Start()
+
+	wg.Wrap(func() {
+		<-ctx.Done()
+		tw.Stop()
+	})
+
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < b.N; i++ {
+		t, _ := tw.TickFunc(
+			time.Duration(rand.Intn(300)+1)*time.Millisecond,
+			func(time.Time) {},
+		)
+		t.Stop()
+
+		tw.AfterFunc(
+			time.Duration(rand.Intn(300)+1)*time.Millisecond,
 			func(time.Time) {},
 		)
 	}
@@ -75,8 +193,14 @@ func Benchmark_TimingWheel_Parallel(b *testing.B) {
 
 	b.RunParallel(func(p *testing.PB) {
 		for p.Next() {
+			t, _ := tw.TickFunc(
+				time.Duration(rand.Intn(300)+1)*time.Millisecond,
+				func(time.Time) {},
+			)
+			t.Stop()
+
 			tw.AfterFunc(
-				time.Duration(rand.Intn(300))*time.Millisecond,
+				time.Duration(rand.Intn(300)+1)*time.Millisecond,
 				func(time.Time) {},
 			)
 		}

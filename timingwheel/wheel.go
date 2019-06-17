@@ -71,6 +71,7 @@ func (w *wheel) addOrRun(t *timerTask, dq delayqueue.DelayQueue) {
 	if !w.add(t, dq) {
 		now := time.Now()
 
+		// TODO(yangsonglin): change to executor interface for test?
 		// the timertask already expired, wo we run execute the timer's task in its own goroutine.
 		go t.f(now)
 
