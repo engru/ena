@@ -248,11 +248,12 @@ func (s *timingWheelTestSuite) TestTickFunc() {
 	})
 
 	<-ctx.Done()
+	wg.Wait()
+
 	for _, tc := range testCases {
 		tc.t.Stop()
 	}
 	s.tw.Stop()
-	wg.Wait()
 
 	for _, tc := range testCases {
 		v := atomic.LoadInt32(&tc.skip)
