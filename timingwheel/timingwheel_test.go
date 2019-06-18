@@ -44,6 +44,11 @@ func (s *timingWheelTestSuite) SetupTest() {
 	tw, err := NewTimingWheel(time.Millisecond, 20)
 	s.NoError(err)
 	s.tw = tw.(*timingWheel)
+	defaultExecutor = blockExecutor
+}
+
+func (s *timingWheelTestSuite) TearDownTest() {
+	defaultExecutor = taskExecutor
 }
 
 func (s *timingWheelTestSuite) TestNewTimingWheelInvalidTick() {
@@ -215,42 +220,39 @@ func (s *timingWheelTestSuite) TestTickFunc() {
 	defer cancel()
 
 	s.tw.Start()
-	// wg.Wrap(func() {
-	for _, tc := range testCases {
-		now := time.Now()
-		atomic.StorePointer(&tc.last, unsafe.Pointer(&now))
-		t, err := s.tw.TickFunc(tc.d, func(tc *testCase) func(time.Time) {
-			return func(ct time.Time) {
-				now, lastptr := ct, (atomic.LoadPointer(&tc.last))
-				last := *((*time.Time)(lastptr))
-				expect := last.Add(tc.d)
+	wg.Wrap(func() {
+		for _, tc := range testCases {
+			now := time.Now()
+			atomic.StorePointer(&tc.last, unsafe.Pointer(&now))
+			t, err := s.tw.TickFunc(tc.d, func(tc *testCase) func(time.Time) {
+				return func(ct time.Time) {
+					now, lastptr := ct, (atomic.LoadPointer(&tc.last))
+					last := *((*time.Time)(lastptr))
+					expect := last.Add(tc.d)
 
-				if now.Before(last) {
-					// the next handler has been called, skip this
-					atomic.AddInt32(&tc.skip, 1)
-					return
-				}
+					if now.Before(last) {
+						// the next handler has been called, skip this
+						atomic.AddInt32(&tc.skip, 1)
+						return
+					}
 
-				atomic.CompareAndSwapPointer(&tc.last, lastptr, unsafe.Pointer(&ct))
-				if expect.After(now.Add(2*time.Millisecond)) || now.After(expect.Add(10*time.Millisecond)) {
-					s.T().Fatalf("receive %s: expect[%v], got[%v], last[%v]", tc.description, expect, now, last)
+					atomic.CompareAndSwapPointer(&tc.last, lastptr, unsafe.Pointer(&ct))
+					if expect.After(now.Add(2*time.Millisecond)) || now.After(expect.Add(10*time.Millisecond)) {
+						s.T().Fatalf("receive %s: expect[%v], got[%v], last[%v]", tc.description, expect, now, last)
+					}
 				}
-			}
-		}(tc))
-		s.NoError(err)
-		tc.t = t
-	}
-	// })
+			}(tc))
+			s.NoError(err)
+			tc.t = t
+		}
+	})
 
 	<-ctx.Done()
 	for _, tc := range testCases {
 		tc.t.Stop()
 	}
 	s.tw.Stop()
-
 	wg.Wait()
-	// TODO(yangsonglin): wait the handler goroutine finished
-	time.Sleep(4 * time.Second)
 
 	for _, tc := range testCases {
 		v := atomic.LoadInt32(&tc.skip)

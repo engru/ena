@@ -73,7 +73,7 @@ func (w *wheel) addOrRun(t *timerTask, dq delayqueue.DelayQueue) {
 
 		// TODO(yangsonglin): change to executor interface for test?
 		// the timertask already expired, wo we run execute the timer's task in its own goroutine.
-		go t.f(now)
+		defaultExecutor(t.f, now)
 
 		if t.t == taskTick && t.stopped == 0 {
 			// the timertask is tick func, and haven't been stopped, reinsert it

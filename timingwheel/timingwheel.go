@@ -107,7 +107,6 @@ func (tw *timingWheel) Start() {
 				b := elem.(*bucket)
 				tw.w.advanceClock(b.Expiration())
 
-				// TODO(lsytj0413): race condition here?
 				b.Flush(addOrRun)
 			case e := <-tw.wch:
 				switch e.Type {
@@ -137,7 +136,7 @@ func (tw *timingWheel) Start() {
 	})
 }
 
-// TODO(lsytj0413): clear all timer after stop
+// TODO(lsytj0413): clear all timer after stop?
 func (tw *timingWheel) Stop() {
 	tw.cancel()
 	tw.wg.Wait()
