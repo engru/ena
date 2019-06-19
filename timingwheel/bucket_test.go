@@ -30,6 +30,74 @@ import (
 
 type bucketTestSuite struct {
 	suite.Suite
+
+	b *bucket
+}
+
+func (s *bucketTestSuite) SetupTest() {
+	s.b = newBucket()
+}
+
+func (s *bucketTestSuite) TestSetExpiration() {
+	s.Equal(int64(-1), s.b.expiration)
+
+	s.Equal(false, s.b.SetExpiration(int64(-1)))
+	s.Equal(int64(-1), s.b.Expiration())
+
+	s.Equal(true, s.b.SetExpiration(int64(1)))
+	s.Equal(int64(1), s.b.Expiration())
+}
+
+func (s *bucketTestSuite) TestAdd() {
+	t := &timerTask{}
+	s.b.Add(t)
+	s.Equal(s.b, t.b)
+	s.NotNil(t.e)
+}
+
+func (s *bucketTestSuite) TestRemoveFailed() {
+	t := &timerTask{}
+	s.b.Add(t)
+
+	t.b = nil
+	s.Equal(false, s.b.remove(t))
+	s.Nil(t.b)
+	s.NotNil(t.e)
+}
+
+func (s *bucketTestSuite) TestRemoveOk() {
+	t := &timerTask{}
+	s.b.Add(t)
+
+	s.Equal(true, s.b.remove(t))
+	s.Nil(t.b)
+	s.Nil(t.e)
+}
+
+func (s *bucketTestSuite) TestFlush() {
+	timers := []*timerTask{
+		{},
+		{},
+	}
+	for _, t := range timers {
+		s.b.Add(t)
+	}
+
+	gotTimers := make([]*timerTask, 0, len(timers))
+	reinsert := func(t *timerTask) {
+		gotTimers = append(gotTimers, t)
+	}
+
+	s.b.Flush(reinsert)
+
+	for _, t := range timers {
+		s.Nil(t.b)
+		s.Nil(t.e)
+	}
+
+	for i := range timers {
+		s.Equal(timers[i], gotTimers[i])
+	}
 }
 
 func TestBucketTestSuite(t *testing.T) {
