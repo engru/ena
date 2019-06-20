@@ -178,7 +178,6 @@ func (s *timingWheelTestSuite) TestAfterFunc() {
 	wg.Wait()
 }
 
-// TODO(lsytj0413): difficult to test, the handler maybe run disorder
 func (s *timingWheelTestSuite) TestTickFunc() {
 	type testCase struct {
 		description string

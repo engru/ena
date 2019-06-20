@@ -71,7 +71,6 @@ func (w *wheel) addOrRun(t *timerTask, dq delayqueue.DelayQueue) {
 	if !w.add(t, dq) {
 		now := time.Now()
 
-		// TODO(yangsonglin): change to executor interface for test?
 		// the timertask already expired, wo we run execute the timer's task in its own goroutine.
 		defaultExecutor(t.f, now)
 
@@ -104,6 +103,18 @@ func (w *wheel) add(t *timerTask, dq delayqueue.DelayQueue) bool {
 		if b.SetExpiration(vid * w.tick) {
 			// the bucket expiration has been changed, we enqueue it into the delayqueue
 			// EX: the wheel has been advanced, and the bucket is reused after flush
+			// 1. flush
+			//   a. after the flush, the expiration will been set to -1, so it will always been updated
+			// 2. advanced
+			//   a. currentTime is 90, tick is 10, and wheelsize is 3, interval is 30
+			//   b. timer task with expiration(101) is add, put in the bucket 1, bucket expiration is 100, and offered
+			//   b. the currentTime is advanced to 100
+			//   c. timer task with expiration(101) is add, put in the bucket 1, bucket expiration is 100, no offered
+			//   e. timer task with expiration(121) is add, put in the bucket 0, bucket expiration is 120, and offered
+			// the currentTime doesn't affect witch bucket put in and the bucket expiration, the same range expiration will
+			// always been put in the same bucket.
+			// but before advance the 121 will addto overflowwheel, and addto currentwheel after advanced. the two bucket has same
+			// expiration(120).
 			dq.Offer(b, b.Expiration())
 		}
 		return true
