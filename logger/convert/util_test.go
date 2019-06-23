@@ -26,7 +26,7 @@ type utilTestSuite struct {
 }
 
 func (s *utilTestSuite) TestPushOk() {
-	tokens, err := ParseToLayoutField("%%123%acb%%c")
+	tokens, err := parse("%%123%acb%%c")
 
 	fmt.Println(tokens)
 	fmt.Println(err)

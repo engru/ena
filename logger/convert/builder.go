@@ -44,7 +44,7 @@ func NewBuilder() Builder {
 }
 
 func (b *defBuilderImpl) Build(layout string) (Converter, error) {
-	fields, err := ParseToLayoutField(layout)
+	fields, err := parse(layout)
 	if err != nil {
 		return nil, err
 	}
