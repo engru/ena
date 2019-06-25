@@ -262,6 +262,150 @@ func (s *timingWheelTestSuite) TestTickFunc() {
 	}
 }
 
+func (s *timingWheelTestSuite) TestTickFuncFailed() {
+	type tickDuration struct {
+		desp string
+		d    time.Duration
+	}
+	type testCase struct {
+		desp string
+		tick time.Duration
+		ds   []tickDuration
+	}
+
+	testCases := []testCase{
+		{
+			desp: "tick(10ms)",
+			tick: 10 * time.Millisecond,
+			ds: []tickDuration{
+				{
+					desp: "d(1ms)",
+					d:    1 * time.Millisecond,
+				},
+				{
+					desp: "d(2ms)",
+					d:    2 * time.Millisecond,
+				},
+				{
+					desp: "d(7ms)",
+					d:    7 * time.Millisecond,
+				},
+				{
+					desp: "d(9ms)",
+					d:    9 * time.Millisecond,
+				},
+			},
+		},
+		{
+			desp: "tick(10s)",
+			tick: 10 * time.Second,
+			ds: []tickDuration{
+				{
+					desp: "d(1ms)",
+					d:    1 * time.Millisecond,
+				},
+				{
+					desp: "d(1.7s)",
+					d:    1700 * time.Millisecond,
+				},
+				{
+					desp: "d(5ms)",
+					d:    5 * time.Second,
+				},
+				{
+					desp: "d(9.999s)",
+					d:    9999 * time.Millisecond,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tw, err := NewTimingWheel(tc.tick, 20)
+		s.NoError(err)
+		for _, tcd := range tc.ds {
+			s.Run(tc.desp+"-"+tcd.desp, func() {
+				tt, err := tw.TickFunc(tcd.d, func(time.Time) {})
+				s.Error(err, ErrInvalidTickFuncDurationValue.Error())
+				s.Nil(tt)
+			})
+		}
+	}
+}
+
+func (s *timingWheelTestSuite) TestTickFuncOk() {
+	type tickDuration struct {
+		desp string
+		d    time.Duration
+	}
+	type testCase struct {
+		desp string
+		tick time.Duration
+		ds   []tickDuration
+	}
+
+	testCases := []testCase{
+		{
+			desp: "tick(10ms)",
+			tick: 10 * time.Millisecond,
+			ds: []tickDuration{
+				{
+					desp: "d(10ms)",
+					d:    10 * time.Millisecond,
+				},
+				{
+					desp: "d(20ms)",
+					d:    20 * time.Millisecond,
+				},
+				{
+					desp: "d(21ms)",
+					d:    21 * time.Millisecond,
+				},
+				{
+					desp: "d(11ms)",
+					d:    11 * time.Millisecond,
+				},
+			},
+		},
+		{
+			desp: "tick(10s)",
+			tick: 10 * time.Second,
+			ds: []tickDuration{
+				{
+					desp: "d(10s)",
+					d:    10000 * time.Millisecond,
+				},
+				{
+					desp: "d(10.001s)",
+					d:    10001 * time.Millisecond,
+				},
+				{
+					desp: "d(12s)",
+					d:    12 * time.Second,
+				},
+				{
+					desp: "d(10000s)",
+					d:    10000 * time.Millisecond,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tw, err := NewTimingWheel(tc.tick, 20)
+		s.NoError(err)
+		tw.Start()
+		for _, tcd := range tc.ds {
+			s.Run(tc.desp+"-"+tcd.desp, func() {
+				tt, err := tw.TickFunc(tcd.d, func(time.Time) {})
+				s.NoError(err)
+				s.NotNil(tt)
+			})
+		}
+		tw.Stop()
+	}
+}
+
 func TestTimingWheelTestSuite(t *testing.T) {
 	s := &timingWheelTestSuite{}
 	suite.Run(t, s)
