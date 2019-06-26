@@ -42,6 +42,10 @@
   name = "github.com/globalsign/mgo"
 
 [[constraint]]
+  version = "4.7.2"
+  name = "github.com/antlr/antlr4"
+
+[[constraint]]
   name = "github.com/go-sql-driver/mysql"
   version = "1.4.1"
 
@@ -78,5 +82,6 @@
   version = "1.7.5"
 
 [prune]
+  non-go = true
   go-tests = true
   unused-packages = true
