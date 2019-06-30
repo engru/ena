@@ -13,3 +13,8 @@
 // limitations under the License.
 
 package common
+
+// IsAlpha check byte is letter
+func IsAlpha(b byte) bool {
+	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
+}
