@@ -112,10 +112,8 @@ func (s *waitTestSuite) TestTriggerTimeout() {
 	id := uint64(34324)
 	_, _ = s.w.Register(id)
 
-	// chn, _ := ch.(chan interface{})
-	// chn <- nil
 	wn := s.w.(*defWait)
-	ch, _ := wn.m[id]
+	ch := wn.m[id]
 	ch <- nil
 
 	err := s.w.Trigger(id, id)

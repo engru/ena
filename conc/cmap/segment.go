@@ -38,10 +38,6 @@ type segment struct {
 }
 
 func newSegment(bucketNumber uint32, pairRedistributor PairRedistributor) Segment {
-	if bucketNumber < 0 {
-		bucketNumber = DefaultBucketNumber
-	}
-
 	if pairRedistributor == nil {
 		pairRedistributor = newPairRedistributor(DefaultBucketLoadFactor, bucketNumber)
 	}

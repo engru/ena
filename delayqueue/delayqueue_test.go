@@ -283,22 +283,19 @@ func (s *delayQueueTestSuite) TestSize() {
 		}()
 
 		i := 0
-		for {
-			select {
-			case v := <-s.dq.Chan():
-				n := defaultTimer.Now()
-				diff := n - sortTestCases[i].expireation
-				if diff < 0 || diff > 10 {
-					s.Failf("ExpireationPrecesionFailed", "Receive at[%v], estimate[%v]", n, sortTestCases[i].expireation)
-				}
+		for v := range s.dq.Chan() {
+			n := defaultTimer.Now()
+			diff := n - sortTestCases[i].expireation
+			if diff < 0 || diff > 10 {
+				s.Failf("ExpireationPrecesionFailed", "Receive at[%v], estimate[%v]", n, sortTestCases[i].expireation)
+			}
 
-				s.T().Logf("Receive %v", v.(int))
-				s.Equal(sortTestCases[i].value, v)
-				i++
-				if i >= len(sortTestCases) {
-					cancel()
-					return
-				}
+			s.T().Logf("Receive %v", v.(int))
+			s.Equal(sortTestCases[i].value, v)
+			i++
+			if i >= len(sortTestCases) {
+				cancel()
+				return
 			}
 		}
 	}()

@@ -34,10 +34,14 @@ func taskExecutor(f Handler, ct time.Time) {
 
 var (
 	// defaultExecutor is the executor for task, it will execute the task in it's own goroutine
-	defaultExecutor = taskExecutor
+	defaultExecutor executor
 )
 
 // blockExecutor will run task in current goruntine, for test usage
 func blockExecutor(f Handler, ct time.Time) {
 	f(ct)
+}
+
+func init() {
+	defaultExecutor = taskExecutor
 }

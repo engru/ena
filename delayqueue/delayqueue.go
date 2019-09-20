@@ -177,7 +177,7 @@ func pollImpl(ctx context.Context, q *delayQueue) bool {
 		case q.C <- item.Value:
 			// the element is fired
 			q.mu.Lock()
-			q.pq.Remove(item)
+			_ = q.pq.Remove(item)
 			q.mu.Unlock()
 			return true
 		case <-ctx.Done():
