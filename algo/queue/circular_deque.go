@@ -146,7 +146,7 @@ func NewCircularDeque(cap int) (CircularDeque, error) {
 	}
 
 	return &circularDeque{
-		datas: make([]interface{}, cap, cap),
+		datas: make([]interface{}, cap),
 		start: 0,
 		end:   0,
 		size:  0,

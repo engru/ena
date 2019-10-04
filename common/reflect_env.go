@@ -59,7 +59,7 @@ func replace(v reflect.Value) {
 	}
 }
 
-// ReplaceEnv will fill the value element with enviroment value
+// ReplaceEnv will fill the value element with environment value
 func ReplaceEnv(value interface{}) error {
 	resultv := reflect.ValueOf(value)
 	if resultv.Kind() != reflect.Ptr {

@@ -123,7 +123,6 @@ func (n *trieNode) Add(value string) {
 	}
 	n.count = 0
 	n.key = prefix
-	return
 }
 
 func (n *trieNode) Search(value string) bool {
@@ -132,8 +131,7 @@ func (n *trieNode) Search(value string) bool {
 	}
 
 	// len(value) > len(n.key), need search in child node if n.key is the prefix of value
-	isPrefix := false
-	if value, isPrefix = TrimPrefix(value, n.key); isPrefix {
+	if value, isPrefix := TrimPrefix(value, n.key); isPrefix {
 		for _, child := range n.children {
 			if child.key[0] == value[0] {
 				return child.Search(value)
@@ -157,8 +155,7 @@ func (n *trieNode) StartsWith(value string) bool {
 	}
 
 	// len(value) > len(n.key), process into child, n.key should be value's prefix
-	isPrefix := false
-	if value, isPrefix = TrimPrefix(value, n.key); isPrefix {
+	if value, isPrefix := TrimPrefix(value, n.key); isPrefix {
 		for _, child := range n.children {
 			if child.key[0] == value[0] {
 				return child.StartsWith(value)

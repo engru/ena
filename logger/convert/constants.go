@@ -22,7 +22,7 @@ const (
 	FieldNameDate FieldName = "date"
 	// FieldNameLevel for level field name
 	FieldNameLevel FieldName = "level"
-	// FieldNamePackage for pacakge field name
+	// FieldNamePackage for package field name
 	FieldNamePackage FieldName = "package"
 	// FieldNameMethod for method field name
 	FieldNameMethod FieldName = "method"

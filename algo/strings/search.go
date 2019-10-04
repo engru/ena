@@ -66,19 +66,3 @@ func _kmpFind(str string, sub string) int {
 
 	return -1
 }
-
-func _normalFind(str string, sub string) int {
-	for i := 0; i < len(str)-len(sub)+1; i++ {
-		j := 0
-		for j = 0; j < len(sub); j++ {
-			if str[i+j] != sub[j] {
-				break
-			}
-		}
-		if j == len(sub) {
-			return i
-		}
-	}
-
-	return -1
-}

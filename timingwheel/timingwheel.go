@@ -63,7 +63,7 @@ type timingWheel struct {
 	// the first layer wheel
 	w *wheel
 
-	// the Wait to get reponse when call AfterFunc
+	// the Wait to get response when call AfterFunc
 	wt wait.Wait
 
 	// the Wait register id, incr
@@ -113,7 +113,7 @@ func (tw *timingWheel) Start() {
 				case eventAddNew:
 					// an timer task is add from AfterFunc/StopFunc
 					addOrRun(e.t)
-					tw.wt.Trigger(e.t.id, e.t)
+					_ = tw.wt.Trigger(e.t.id, e.t)
 				case eventDelete:
 					stopped := false
 					switch atomic.LoadUint32(&e.t.stopped) {
@@ -127,7 +127,7 @@ func (tw *timingWheel) Start() {
 							atomic.StoreUint32(&e.t.stopped, 1)
 						}
 					}
-					tw.wt.Trigger(e.t.id, stopped)
+					_ = tw.wt.Trigger(e.t.id, stopped)
 				}
 			case <-tw.ctx.Done():
 				return

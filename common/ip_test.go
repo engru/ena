@@ -78,7 +78,7 @@ func (p *ipTestSuite) TestIp2Uint32FailIpv6() {
 	values := []string{"CDCD:910A:2222:5498:8475:1111:3900:2020",
 		"1030::C9B4:FF12:48AA:1A2B",
 		"2000:0:0:0:0:0:0:1",
-		// blow ipv6 will be tranform to ipv4
+		// blow ipv6 will be transform to ipv4
 		// "::ffff:192.168.89.9",
 		// "::192.168.89.9",
 	}

@@ -101,7 +101,7 @@ func Register(job Job) error {
 
 		logger.Infof("Job[%v] Start", job.Name())
 		defer func() {
-			logger.Infof("Job[%v] Done, Cost[%v]", job.Name(), time.Now().Sub(start))
+			logger.Infof("Job[%v] Done, Cost[%v]", job.Name(), time.Since(start))
 		}()
 
 		job.Run()

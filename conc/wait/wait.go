@@ -30,7 +30,7 @@ type Wait interface {
 	// Trigger triggers the waiting chans with the given ID
 	Trigger(id uint64, x interface{}) error
 
-	// IsRegisterd returns where the id is been registerd
+	// IsRegisterd returns where the id is been registered
 	IsRegistered(id uint64) bool
 }
 

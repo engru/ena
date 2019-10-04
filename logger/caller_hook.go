@@ -49,7 +49,7 @@ func (callerHook) Fire(entry *logrus.Entry) error {
 		l: placeHolder,
 	}
 
-	pc := make([]uintptr, 10, 10)
+	pc := make([]uintptr, 10)
 	cnt := runtime.Callers(7, pc)
 	var last = -1
 	for i := cnt; i >= 0; i-- {
