@@ -19,8 +19,8 @@ import (
 	"net"
 )
 
-// Ip2Uint32 will encode ip string to uint32, only support ipv4
-func Ip2Uint32(ip string) (uint32, error) {
+// IP2Uint32 will encode ip string to uint32, only support ipv4
+func IP2Uint32(ip string) (uint32, error) {
 	value := net.ParseIP(ip)
 	if value == nil {
 		return 0, fmt.Errorf("Invalid IP address: %s", ip)
@@ -43,12 +43,12 @@ func Ip2Uint32(ip string) (uint32, error) {
 
 // Uint322Ip will encode ip uint32 to string, only support ipv4
 func Uint322Ip(ip uint32) string {
-	segs := IpSegments(ip)
+	segs := IPSegments(ip)
 	return fmt.Sprintf("%d.%d.%d.%d", segs[0], segs[1], segs[2], segs[3])
 }
 
-// IpSegments will split ip to byte array
-func IpSegments(ip uint32) []uint8 {
+// IPSegments will split ip to byte array
+func IPSegments(ip uint32) []uint8 {
 	seg1 := uint8((ip & 0xFF000000) >> 24)
 	seg2 := uint8((ip & 0x00FF0000) >> 16)
 	seg3 := uint8((ip & 0x0000FF00) >> 8)

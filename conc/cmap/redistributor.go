@@ -63,6 +63,7 @@ var bucketCountTemplate = `Bucket count:
     emptyBucketCount: %d
 
 `
+var _ = bucketCountTemplate
 
 func (p *defPairRedistributor) UpdateThreshold(pairTotal uint64, bucketNumber uint32) {
 	average := float64(pairTotal / uint64(bucketNumber))
@@ -82,6 +83,7 @@ var bucketStatusTemplate = `Check bucket status:
     bucketStatus: %d
 
 `
+var _ = bucketStatusTemplate
 
 func (p *defPairRedistributor) CheckBucketStatus(pairTotal uint64, bucketSize uint64) BucketStatus {
 	if bucketSize > DefaultBucketMaxSize ||
@@ -102,6 +104,7 @@ var redistributionTemplate = `Redistributing:
     newNumber: %d
 
 `
+var _ = redistributionTemplate
 
 func (p *defPairRedistributor) Redistribe(bucketStatus BucketStatus, buckets []Bucket) (newBuckets []Bucket, changed bool) {
 	currentNumber := uint64(len(buckets))
@@ -157,7 +160,7 @@ func (p *defPairRedistributor) Redistribe(bucketStatus BucketStatus, buckets []B
 	for _, p := range pairs {
 		index := int(p.Hash() % newNumber)
 		b := buckets[index]
-		b.Put(p, nil)
+		_, _ = b.Put(p, nil)
 		count++
 	}
 

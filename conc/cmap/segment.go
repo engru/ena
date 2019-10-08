@@ -62,7 +62,7 @@ func (s *segment) Put(p Pair) (bool, error) {
 	ok, err := b.Put(p, nil)
 	if ok {
 		newTotal := atomic.AddUint64(&s.pairTotal, 1)
-		s.redistribute(newTotal, b.Size())
+		_ = s.redistribute(newTotal, b.Size())
 	}
 
 	return ok, err
@@ -91,7 +91,7 @@ func (s *segment) Delete(key string) bool {
 	ok := b.Delete(key, nil)
 	if ok {
 		newTotal := atomic.AddUint64(&s.pairTotal, ^uint64(0))
-		s.redistribute(newTotal, b.Size())
+		_ = s.redistribute(newTotal, b.Size())
 	}
 
 	return ok

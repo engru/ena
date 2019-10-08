@@ -97,12 +97,12 @@ func (b *bucket) Put(p Pair, lock sync.Locker) (bool, error) {
 	}
 	// replace the old value
 	if target != nil {
-		target.SetValue(p.Value())
+		_ = target.SetValue(p.Value())
 		return false, nil
 	}
 
 	// store new Pair
-	p.SetNext(firstPair)
+	_ = p.SetNext(firstPair)
 	b.firstValue.Store(p)
 	atomic.AddUint64(&b.size, 1)
 	return true, nil
@@ -155,7 +155,7 @@ func (b *bucket) Delete(key string, lock sync.Locker) bool {
 	newFirstPair := breakpoint
 	for i := len(prevPairs) - 1; i >= 0; i-- {
 		pairCopy := prevPairs[i].Clone()
-		pairCopy.SetNext(newFirstPair)
+		_ = pairCopy.SetNext(newFirstPair)
 		newFirstPair = pairCopy
 	}
 	if newFirstPair != nil {

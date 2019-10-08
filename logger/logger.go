@@ -87,5 +87,7 @@ func init() {
 	log.Level = logrus.InfoLevel
 	log.AddHook(callerHook{})
 
-	SetLogPattern("[%d] [%level] [%P:%F:%M:%L] %msg\n")
+	if err := SetLogPattern("[%d] [%level] [%P:%F:%M:%L] %msg\n"); err != nil {
+		panic(err)
+	}
 }

@@ -38,6 +38,7 @@ func defaultParser(layout string) ([]*LayoutField, error) {
 	// TODO: merge same type layout field
 	n, mode := bytes.Buffer{}, 0
 	modesp := map[int]func(int) (int, int, error){
+		//nolint: unparam
 		0: func(i int) (next int, m int, err error) {
 			next = i + 1
 			if layout[i] != '%' {
@@ -73,6 +74,7 @@ func defaultParser(layout string) ([]*LayoutField, error) {
 				return -1, -1, fmt.Errorf("unexpected char[%v] after %% at %d", layout[i], i)
 			}
 		},
+		//nolint: unparam
 		2: func(i int) (next int, m int, err error) {
 			if IsAlpha(layout[i]) {
 				n.WriteByte(layout[i])

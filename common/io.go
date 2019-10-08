@@ -47,8 +47,8 @@ func Readn(r io.Reader, n uint32) ([]byte, error) {
 	return buf, nil
 }
 
-// Writen will write buf to Writer
-func Writen(w io.Writer, buf []byte) error {
+// WriteN will write buf to Writer
+func WriteN(w io.Writer, buf []byte) error {
 	var writed int
 	len := len(buf)
 	for {

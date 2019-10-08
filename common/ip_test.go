@@ -45,7 +45,7 @@ func (p *ipTestSuite) TestIp2Uint32Ok() {
 		"255.255.255.255": 4294967295,
 	}
 	for k, v := range values {
-		actual, err := Ip2Uint32(k)
+		actual, err := IP2Uint32(k)
 		p.Equal(err, nil)
 		p.Equal(v, actual)
 	}
@@ -69,7 +69,7 @@ func (p *ipTestSuite) TestIp2Uint32FailInvalid() {
 		":192.168.89.9",
 	}
 	for _, value := range values {
-		_, err := Ip2Uint32(value)
+		_, err := IP2Uint32(value)
 		p.EqualError(err, fmt.Sprintf("Invalid IP address: %s", value))
 	}
 }
@@ -83,7 +83,7 @@ func (p *ipTestSuite) TestIp2Uint32FailIpv6() {
 		// "::192.168.89.9",
 	}
 	for _, value := range values {
-		_, err := Ip2Uint32(value)
+		_, err := IP2Uint32(value)
 		p.EqualError(err, fmt.Sprintf("Only Support IPv4 address: %s", value))
 	}
 }

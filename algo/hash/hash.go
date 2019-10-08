@@ -34,6 +34,7 @@ type hasher struct {
 func (h *hasher) Uint64(data []byte) uint64 {
 	defer h.v64.Reset()
 
+	//nolint: errcheck
 	h.v64.Write(data)
 	return h.v64.Sum64()
 }
@@ -41,6 +42,7 @@ func (h *hasher) Uint64(data []byte) uint64 {
 func (h *hasher) Uint32(data []byte) uint32 {
 	defer h.v32.Reset()
 
+	//nolint: errcheck
 	h.v32.Write(data)
 	return h.v32.Sum32()
 }
