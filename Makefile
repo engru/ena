@@ -49,7 +49,10 @@ BASE_REGISTRY ?=
 #
 
 # It's necessary to set this because some environments don't link sh -> bash.
-SHELL := /bin/bash
+export SHELL := /bin/bash
+
+# It's necessary to set the errexit flags for the bash shell.
+export SHELLOPTS := errexit
 
 # Project main package location (can be multiple ones).
 CMD_DIR := ./cmd
@@ -64,7 +67,7 @@ BUILD_DIR := ./build
 VERSION ?= $(shell git describe --tags --always --dirty)
 
 # Available cpus for compiling.
-CPUS ?= $(shell sh hack/read_cpus_available.sh)
+CPUS ?= $(shell /bin/bash hack/read_cpus_available.sh)
 
 # Track code version with Docker Label.
 DOCKER_LABELS ?= git-describe="$(shell date -u +v%Y%m%d)-$(shell git describe --tags --always --dirty)"
@@ -85,13 +88,13 @@ build: build-local
 
 # more info about `GOGC` env: https://github.com/golangci/golangci-lint#memory-usage-of-golangci-lint
 lint: $(GOLANGCI_LINT)
-	@GOGC=5 $(GOLANGCI_LINT) run
+	$(GOLANGCI_LINT) run -v
 
 $(GOLANGCI_LINT):
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BIN_DIR) v1.16.0
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BIN_DIR) v1.20.1
 
 test:
-	@go test -p $(CPUS) $$(go list ./... | grep -v /vendor | grep -v /test) -coverprofile=coverage.out
+	@go test -p $(CPUS) $$(go list ./... | grep -v /vendor | grep -v /test | grep -v /example) -coverprofile=coverage.out
 	@go tool cover -func coverage.out | tail -n 1 | awk '{ print "Total coverage: " $$3 }'
 
 build-local:
@@ -103,19 +106,20 @@ build-local:
 	done
 
 build-linux:
-	@for target in $(TARGETS); do                                                      \
-	  docker run --rm                                                                  \
-	    -v $(PWD):/go/src/$(ROOT)                                                      \
-	    -w /go/src/$(ROOT)                                                             \
-	    -e GOOS=linux                                                                  \
-	    -e GOARCH=amd64                                                                \
-	    -e GOPATH=/go                                                                  \
-	    $(BASE_REGISTRY)/golang:1.12.9-stretch                                         \
+	@docker run --rm -t                                                                  \
+	  -v $(PWD):/go/src/$(ROOT)                                                        \
+	  -w /go/src/$(ROOT)                                                               \
+	  -e GOOS=linux                                                                    \
+	  -e GOARCH=amd64                                                                  \
+	  -e GOPATH=/go                                                                    \
+	  -e SHELLOPTS=$(SHELLOPTS)                                                        \
+	  $(BASE_REGISTRY)/golang:1.12.9-stretch                                           \
+	    /bin/bash -c 'for target in $(TARGETS); do                                     \
 	      go build -i -v -o $(OUTPUT_DIR)/$${target} -p $(CPUS)                        \
 	        -ldflags "-s -w -X $(ROOT)/pkg/version.VERSION=$(VERSION)                  \
 	          -X $(ROOT)/pkg/version.REPOROOT=$(ROOT)"                                 \
 	        $(CMD_DIR)/$${target};                                                     \
-	done
+	    done'
 
 container: build-linux
 	@for target in $(TARGETS); do                                                      \
