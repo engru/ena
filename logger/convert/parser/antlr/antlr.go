@@ -12,5 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package flags implements more powerful command-line flag parsing
-package flags
+package antlr
+
+import (
+	"fmt"
+
+	"github.com/lsytj0413/ena/logger/convert/parser"
+)
+
+const (
+	// TokenizerName defines of antlr
+	TokenizerName = "antlr"
+)
+
+type antlrTokenizer struct {
+}
+
+func (p *antlrTokenizer) Name() string {
+	return TokenizerName
+}
+
+func (p *antlrTokenizer) Parse(pattern string) (parser.Tokens, error) {
+	return nil, fmt.Errorf("NotImplement")
+}
+
+// NewTokenizer construct antlr tokenizer parser instance
+func NewTokenizer() (parser.Tokenizer, error) {
+	return &antlrTokenizer{}, nil
+}

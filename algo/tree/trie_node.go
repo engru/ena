@@ -74,7 +74,7 @@ func (n *trieNode) Add(value string) {
 	}
 
 	prefix := CommonPrefix(value, n.key)
-	if prefix == "" { // no common prefix, panic
+	if prefix == "" {
 		panic(fmt.Sprintf("TrieNode Add: key %s and value %s has no common prefix", n.key, value))
 	}
 
