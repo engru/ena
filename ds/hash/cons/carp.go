@@ -17,7 +17,7 @@ package cons
 import (
 	"errors"
 
-	"github.com/lsytj0413/ena/algo/hash"
+	"github.com/lsytj0413/ena/ds/hash"
 )
 
 // Carper is interface for [CARP](https://tools.ietf.org/html/draft-vinod-carp-v1-03) algorithm

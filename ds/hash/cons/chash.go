@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	"github.com/lsytj0413/ena/algo/hash"
+	"github.com/lsytj0413/ena/ds/hash"
 )
 
 // Config is Consistent hash config

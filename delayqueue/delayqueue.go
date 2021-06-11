@@ -29,7 +29,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/lsytj0413/ena/algo/queue/priorityqueue"
+	"github.com/lsytj0413/ena/ds/queue/priorityqueue"
 )
 
 // Element of DelayQueue Item
