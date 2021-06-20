@@ -17,7 +17,10 @@
 // Package atexit provide a way to run Handler at process exit
 package atexit
 
-import "os"
+import (
+	"context"
+	"os"
+)
 
 // Handler is the function type which will be called at exit
 type Handler func()
@@ -27,6 +30,11 @@ func RegisterHandler(handler Handler) {}
 
 // HandleInterrupts is a no-op on windows
 func HandleInterrupts() {}
+
+// Context get the notify context, It will been Done when signal received
+func Context() context.Context {
+	return context.TODO()
+}
 
 // Exit calls os.Exit
 func Exit(code int) {

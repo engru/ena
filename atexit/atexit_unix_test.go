@@ -19,6 +19,7 @@ package atexit
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -43,6 +44,10 @@ func waitSig(t *testing.T, c <-chan os.Signal, sig os.Signal) {
 
 func (p *atexitTestSuite) TestHandleInterrupt() {
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM} {
+		// reinitialize the lib
+		startOnce = sync.Once{}
+		handlers = handlers[:0]
+
 		n := 1
 		RegisterHandler(func() { n++ })
 		RegisterHandler(func() { n *= 2 })
@@ -64,7 +69,6 @@ func (p *atexitTestSuite) TestHandleInterrupt() {
 			p.T().Fatalf("interrupt handlers were not called properly")
 		}
 
-		handlers = handlers[:0]
 		// exitMutex.Unlock()
 	}
 }

@@ -37,6 +37,9 @@ var (
 
 	ctx, cancel = context.WithCancel(context.Background())
 
+	notifyCtx, notifyCancel = context.WithCancel(context.Background())
+	startOnce               sync.Once
+
 	// ErrWriter for error log, os.Stderr is default
 	ErrWriter io.Writer
 	// StdWriter for normal log, os.Stdout is default
@@ -78,8 +81,21 @@ func RegisterHandler(handler Handler) {
 	handlers = append(handlers, handler)
 }
 
+// Context get the notify context, It will been Done when signal received
+func Context() context.Context {
+	HandleInterrupts()
+
+	return notifyCtx
+}
+
 // HandleInterrupts will calls the handler functions on receiving a SIGINT or SIGTERM
 func HandleInterrupts() {
+	startOnce.Do(
+		handleInterrupts,
+	)
+}
+
+func handleInterrupts() {
 	notifier := make(chan os.Signal, 1)
 	signal.Notify(notifier, syscall.SIGINT, syscall.SIGTERM)
 
@@ -106,6 +122,7 @@ func HandleInterrupts() {
 		fmt.Fprintf(StdWriter, "atexit: received %v signal, shutting down...", sig)
 
 		runHandlers(tmpHandlers)
+		notifyCancel()
 
 		signal.Stop(notifier)
 		pid := syscall.Getpid()
