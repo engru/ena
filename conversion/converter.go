@@ -1,10 +1,11 @@
 package conversion
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/pkg/errors"
+
+	"github.com/lsytj0413/ena"
 )
 
 var (
@@ -122,11 +123,11 @@ func (c *converterImpl) Convert(in interface{}, out interface{}, context interfa
 		}
 	}
 
-	dv, err := EnforcePtr(out)
+	dv, err := ena.EnforcePtr(out)
 	if err != nil {
 		return err
 	}
-	sv, err := EnforcePtr(in)
+	sv, err := ena.EnforcePtr(in)
 	if err != nil {
 		return err
 	}
@@ -147,23 +148,6 @@ func (c *converterImpl) RegisterConversionFunc(in interface{}, out interface{}, 
 
 func (c *converterImpl) RegisterGenericConversionFunc(fn ConversionFunc) {
 	c.genericFuncs = append(c.genericFuncs, fn)
-}
-
-// EnforcePtr ensures that obj is a pointer of some sort. Returns a reflect.Value
-// of the dereferenced pointer, ensuring that it is settable/addressable.
-// Returns an error if this is not possible.
-func EnforcePtr(obj interface{}) (reflect.Value, error) {
-	v := reflect.ValueOf(obj)
-	if v.Kind() != reflect.Ptr {
-		if v.Kind() == reflect.Invalid {
-			return reflect.Value{}, fmt.Errorf("expected pointer, but got invalid kind")
-		}
-		return reflect.Value{}, fmt.Errorf("expected pointer, but got %v type", v.Type())
-	}
-	if v.IsNil() {
-		return reflect.Value{}, fmt.Errorf("expected pointer, but got nil")
-	}
-	return v.Elem(), nil
 }
 
 var (
