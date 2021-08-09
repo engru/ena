@@ -46,14 +46,43 @@ func (s *scope) Meta() *Meta {
 // ValidateFunc validate the object
 type ValidateFunc = func(in interface{}, scope Scope) error
 
+type option struct {
+	// WithSlice will register the **auto generate** []Type ValidateFunc
+	WithSlice bool
+
+	// WithPtrSlice will register the **auto generate** []*Type ValidateFunc
+	WithPtrSlice bool
+}
+
+// Option is some configuration that modifies options for a register.
+type Option interface {
+	Apply(*option)
+}
+
+// WithSliceValidateFunc set the WithSlice field
+type WithSliceValidateFunc bool
+
+// Apply applies this configuration to the given option
+func (w WithSliceValidateFunc) Apply(opt *option) {
+	opt.WithSlice = bool(w)
+}
+
+// WithPtrSliceValidateFunc set the WithPtrSlice field
+type WithPtrSliceValidateFunc bool
+
+// Apply applies this configuration to the given option
+func (w WithPtrSliceValidateFunc) Apply(opt *option) {
+	opt.WithPtrSlice = bool(w)
+}
+
 // Interface knowns how to validate one type
 type Interface interface {
 	// RegisterValidateFunc registers a function that validate the object.
-	RegisterValidateFunc(in interface{}, fn ValidateFunc) error
+	RegisterValidateFunc(in interface{}, fn ValidateFunc, opts ...Option) error
 
 	// MustRegisterValidateFunc registers a function that validate the object.
 	// It will panic if err occurred.
-	MustRegisterValidateFunc(in interface{}, fn ValidateFunc)
+	MustRegisterValidateFunc(in interface{}, fn ValidateFunc, opts ...Option)
 
 	// Validate will validate the in object. in must be pointers.
 	Validate(in interface{}, context interface{}) error
@@ -80,20 +109,39 @@ func NewValidator() Interface {
 	}
 }
 
-func (v *validatorImpl) RegisterValidateFunc(in interface{}, fn ValidateFunc) error {
+func (v *validatorImpl) RegisterValidateFunc(in interface{}, fn ValidateFunc, opts ...Option) error {
 	tIn := reflect.TypeOf(in)
 	if tIn.Kind() != reflect.Ptr {
 		return errors.Errorf("the type %T must be a pointer to register as an validate", in)
 	}
 
+	options := &option{}
+	for _, opt := range opts {
+		opt.Apply(options)
+	}
+
 	v.validateFuncs.untyped[typeInfo{
 		in: tIn,
 	}] = fn
+
+	if options.WithSlice {
+		arrType := typeInfo{
+			in: reflect.PtrTo(reflect.SliceOf(tIn.Elem())),
+		}
+		v.validateFuncs.untyped[arrType] = validateSlice
+	}
+
+	if options.WithPtrSlice {
+		arrType := typeInfo{
+			in: reflect.PtrTo(reflect.SliceOf(tIn)),
+		}
+		v.validateFuncs.untyped[arrType] = validatePtrSlice
+	}
 	return nil
 }
 
-func (v *validatorImpl) MustRegisterValidateFunc(in interface{}, fn ValidateFunc) {
-	err := v.RegisterValidateFunc(in, fn)
+func (v *validatorImpl) MustRegisterValidateFunc(in interface{}, fn ValidateFunc, opts ...Option) {
+	err := v.RegisterValidateFunc(in, fn, opts...)
 	if err != nil {
 		panic(errors.Wrapf(err, "MustRegisterValidateFunc failed"))
 	}
@@ -120,6 +168,47 @@ func (v *validatorImpl) Validate(in interface{}, context interface{}) error {
 		return err
 	}
 	return errors.Errorf("validate (%s): unknown validator", sv.Type())
+}
+
+func validateSlice(in interface{}, scope Scope) error {
+	tIn := reflect.TypeOf(in)
+	if tIn.Kind() != reflect.Ptr {
+		panic(errors.Errorf("the type %T must be a pointer", in))
+	}
+	if tIn.Elem().Kind() != reflect.Slice {
+		panic(errors.Errorf("the type %T must be a pointer to slice", in))
+	}
+
+	vIn := reflect.ValueOf(in)
+	for i := 0; i < vIn.Elem().Len(); i++ {
+		if err := scope.Validate(vIn.Elem().Index(i).Addr().Interface()); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validatePtrSlice(in interface{}, scope Scope) error {
+	tIn := reflect.TypeOf(in)
+	if tIn.Kind() != reflect.Ptr {
+		panic(errors.Errorf("the type %T must be a pointer", in))
+	}
+	if tIn.Elem().Kind() != reflect.Slice {
+		panic(errors.Errorf("the type %T must be a pointer to slice", in))
+	}
+	if tIn.Elem().Elem().Kind() != reflect.Ptr {
+		panic(errors.Errorf("the type %T must be a pointer to slice with pointer", in))
+	}
+
+	vIn := reflect.ValueOf(in)
+	for i := 0; i < vIn.Elem().Len(); i++ {
+		if err := scope.Validate(vIn.Elem().Index(i).Interface()); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 var (

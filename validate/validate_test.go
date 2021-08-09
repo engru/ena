@@ -9,24 +9,51 @@ func TestRegisterValidateFunc(t *testing.T) {
 	type testCase struct {
 		desp string
 
-		in interface{}
-		fn ValidateFunc
+		in   interface{}
+		opts []Option
+		fn   ValidateFunc
 
 		isErr bool
 	}
 	testCases := []testCase{
 		{
-			desp: "normal test",
-			in:   &testCase{},
-			fn:   nil,
-
+			desp:  "normal test",
+			in:    &testCase{},
+			fn:    nil,
 			isErr: false,
 		},
 		{
-			desp: "in not ptr",
-			in:   testCase{},
-			fn:   nil,
-
+			desp: "register with slice",
+			in:   &testCase{},
+			opts: []Option{
+				WithSliceValidateFunc(true),
+			},
+			fn:    nil,
+			isErr: false,
+		},
+		{
+			desp: "register with ptr slice",
+			in:   &testCase{},
+			opts: []Option{
+				WithPtrSliceValidateFunc(true),
+			},
+			fn:    nil,
+			isErr: false,
+		},
+		{
+			desp: "register with both slice & ptr slice",
+			in:   &testCase{},
+			opts: []Option{
+				WithPtrSliceValidateFunc(true),
+				WithSliceValidateFunc(true),
+			},
+			fn:    nil,
+			isErr: false,
+		},
+		{
+			desp:  "in not ptr",
+			in:    testCase{},
+			fn:    nil,
 			isErr: true,
 		},
 	}
@@ -34,7 +61,7 @@ func TestRegisterValidateFunc(t *testing.T) {
 		t.Run(tc.desp, func(t *testing.T) {
 			c := NewValidator()
 
-			err := c.RegisterValidateFunc(tc.in, tc.fn)
+			err := c.RegisterValidateFunc(tc.in, tc.fn, tc.opts...)
 			if tc.isErr != (err != nil) {
 				t.Fatalf("Expect err %v, got %v", tc.isErr, err)
 			}
@@ -141,6 +168,42 @@ func TestValidate(t *testing.T) {
 		err = c.Validate(in, nil)
 		if err == nil {
 			t.Fatalf("Expect err, got no err")
+		}
+	})
+
+	t.Run("with slice", func(t *testing.T) {
+		c := NewValidator()
+		c.RegisterValidateFunc((*testValidate1)(nil), func(in interface{}, scope Scope) error {
+			return fn(in.(*testValidate1), scope)
+		}, WithSliceValidateFunc(true))
+
+		in := &[]testValidate1{
+			{
+				Total1: 1,
+			},
+		}
+
+		err := c.Validate(in, nil)
+		if err != nil {
+			t.Fatalf("Expect no err, got %v", err)
+		}
+	})
+
+	t.Run("with ptr slice", func(t *testing.T) {
+		c := NewValidator()
+		c.RegisterValidateFunc((*testValidate1)(nil), func(in interface{}, scope Scope) error {
+			return fn(in.(*testValidate1), scope)
+		}, WithPtrSliceValidateFunc(true))
+
+		in := &[]*testValidate1{
+			{
+				Total1: 1,
+			},
+		}
+
+		err := c.Validate(in, nil)
+		if err != nil {
+			t.Fatalf("Expect no err, got %v", err)
 		}
 	})
 }
