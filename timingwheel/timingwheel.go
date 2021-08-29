@@ -33,24 +33,66 @@ import (
 	"github.com/lsytj0413/ena/delayqueue"
 )
 
+type option struct {
+	// Tick is the tick duration with wheel
+	Tick time.Duration
+
+	// WheelSize is the size of buckets
+	WheelSize int64
+}
+
+// Validate check the option
+func (o *option) Validate() error {
+	return nil
+}
+
+// Option is some configuration that modifies options for a wheel.
+type Option interface {
+	Apply(*option)
+}
+
+// WithTickDuration set the Tick field
+type WithTickDuration time.Duration
+
+// Apply applies this configuration to the given option
+func (w WithTickDuration) Apply(opt *option) {
+	opt.Tick = time.Duration(w)
+}
+
+// WithSize set the WheelSize field
+type WithSize int64
+
+// Apply applies this configuration to the given option
+func (w WithSize) Apply(opt *option) {
+	opt.WheelSize = int64(w)
+}
+
 // NewTimingWheel creates an instance of TimingWheel with the given tick and wheelSize.
-func NewTimingWheel(tick time.Duration, wheelSize int64) (TimingWheel, error) {
-	tickMs := int64(tick / time.Millisecond)
+func NewTimingWheel(opts ...Option) (TimingWheel, error) {
+	options := &option{
+		Tick:      time.Second,
+		WheelSize: 64,
+	}
+	for _, opt := range opts {
+		opt.Apply(options)
+	}
+
+	tickMs := int64(options.Tick / time.Millisecond)
 	if tickMs <= 0 {
 		return nil, ErrInvalidTickValue
 	}
-	if wheelSize <= 0 {
+	if options.WheelSize <= 0 {
 		return nil, ErrInvalidWheelSize
 	}
 
 	startMs := timeToMs(time.Now())
-	t := newWheel(tickMs, wheelSize, startMs)
+	t := newWheel(tickMs, options.WheelSize, startMs)
 
 	tw := &timingWheel{
-		dq:  delayqueue.New(int(wheelSize)),
+		dq:  delayqueue.New(int(options.WheelSize)),
 		w:   t,
 		wt:  wait.New(),
-		wch: make(chan event, int(wheelSize)*100), // the channel is bufferd, could change to unbufferd?
+		wch: make(chan event, int(options.WheelSize)*100), // the channel is bufferd, could change to unbufferd?
 	}
 
 	tw.ctx, tw.cancel = context.WithCancel(context.Background())

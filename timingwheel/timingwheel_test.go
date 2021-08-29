@@ -41,7 +41,7 @@ type timingWheelTestSuite struct {
 }
 
 func (s *timingWheelTestSuite) SetupTest() {
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	s.NoError(err)
 	s.tw = tw.(*timingWheel)
 	defaultExecutor = blockExecutor
@@ -62,7 +62,7 @@ func (s *timingWheelTestSuite) TestNewTimingWheelInvalidTick() {
 		999 * time.Microsecond,
 	}
 	for _, v := range values {
-		tw, err := NewTimingWheel(v, 20)
+		tw, err := NewTimingWheel(WithTickDuration(v), WithSize(20))
 		s.Error(err, ErrInvalidTickValue.Error())
 		s.Nil(tw)
 	}
@@ -77,7 +77,7 @@ func (s *timingWheelTestSuite) TestNewTimingWheelInvalidWheelSize() {
 		0,
 	}
 	for _, v := range values {
-		tw, err := NewTimingWheel(time.Millisecond, v)
+		tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(v))
 		s.Error(err, ErrInvalidWheelSize.Error())
 		s.Nil(tw)
 	}
@@ -95,7 +95,7 @@ func (s *timingWheelTestSuite) TestNewTimingWheelOk() {
 		time.Hour,
 	}
 	for _, v := range values {
-		tw, err := NewTimingWheel(v, 20)
+		tw, err := NewTimingWheel(WithTickDuration(v), WithSize(20))
 		s.NoError(err)
 		s.NotNil(tw)
 	}
@@ -321,7 +321,7 @@ func (s *timingWheelTestSuite) TestTickFuncFailed() {
 	}
 
 	for _, tc := range testCases {
-		tw, err := NewTimingWheel(tc.tick, 20)
+		tw, err := NewTimingWheel(WithTickDuration(tc.tick), WithSize(20))
 		s.NoError(err)
 		for _, tcd := range tc.ds {
 			s.Run(tc.desp+"-"+tcd.desp, func() {
@@ -392,7 +392,7 @@ func (s *timingWheelTestSuite) TestTickFuncOk() {
 	}
 
 	for _, tc := range testCases {
-		tw, err := NewTimingWheel(tc.tick, 20)
+		tw, err := NewTimingWheel(WithTickDuration(tc.tick), WithSize(20))
 		s.NoError(err)
 		tw.Start()
 		for _, tcd := range tc.ds {

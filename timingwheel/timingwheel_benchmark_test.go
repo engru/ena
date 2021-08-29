@@ -34,7 +34,7 @@ import (
 func Benchmark_TimingWheel_AfterFunc(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	if err != nil {
 		b.FailNow()
 	}
@@ -60,7 +60,7 @@ func Benchmark_TimingWheel_AfterFunc(b *testing.B) {
 func Benchmark_TimingWheel_AfterFunc_Parallel(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	if err != nil {
 		b.FailNow()
 	}
@@ -89,7 +89,7 @@ func Benchmark_TimingWheel_AfterFunc_Parallel(b *testing.B) {
 func Benchmark_TimingWheel_TickFunc(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	if err != nil {
 		b.FailNow()
 	}
@@ -116,7 +116,7 @@ func Benchmark_TimingWheel_TickFunc(b *testing.B) {
 func Benchmark_TimingWheel_TickFunc_Parallel(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	if err != nil {
 		b.FailNow()
 	}
@@ -146,7 +146,7 @@ func Benchmark_TimingWheel_TickFunc_Parallel(b *testing.B) {
 func Benchmark_TimingWheel(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	if err != nil {
 		b.FailNow()
 	}
@@ -178,7 +178,7 @@ func Benchmark_TimingWheel(b *testing.B) {
 func Benchmark_TimingWheel_Parallel(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg conc.WaitGroupWrapper
-	tw, err := NewTimingWheel(time.Millisecond, 20)
+	tw, err := NewTimingWheel(WithTickDuration(time.Millisecond), WithSize(20))
 	if err != nil {
 		b.FailNow()
 	}
